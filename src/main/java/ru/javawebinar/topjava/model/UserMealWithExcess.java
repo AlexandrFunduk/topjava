@@ -1,5 +1,8 @@
 package ru.javawebinar.topjava.model;
 
+import ru.javawebinar.topjava.util.BooleanContainer;
+
+import javax.jws.soap.SOAPBinding;
 import java.time.LocalDateTime;
 
 public class UserMealWithExcess {
@@ -9,12 +12,19 @@ public class UserMealWithExcess {
 
     private final int calories;
 
-    private final Boolean[] excess;
+    private final BooleanContainer excess;
 
-    public UserMealWithExcess(LocalDateTime dateTime, String description, int calories, Boolean[] excess) {
+    public UserMealWithExcess(LocalDateTime dateTime, String description, int calories, BooleanContainer excess) {
         this.dateTime = dateTime;
         this.description = description;
         this.calories = calories;
+        this.excess = excess;
+    }
+
+    public UserMealWithExcess(UserMeal userMeal, BooleanContainer excess) {
+        this.dateTime = userMeal.getDateTime();
+        this.description = userMeal.getDescription();
+        this.calories = userMeal.getCalories();
         this.excess = excess;
     }
 
@@ -24,7 +34,7 @@ public class UserMealWithExcess {
                 "dateTime=" + dateTime +
                 ", description='" + description + '\'' +
                 ", calories=" + calories +
-                ", excess=" + excess[0] +
+                ", excess=" + excess +
                 '}';
     }
 }

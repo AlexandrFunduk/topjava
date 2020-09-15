@@ -51,16 +51,14 @@ public class UserMealsUtil {
             map.merge(userMeal.getDateTime().toLocalDate(), userMeal.getCalories(), Integer::sum);
             if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
                 if (map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay) {
-                    Boolean[] bTrue = new Boolean[] {true};
-                    result.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), bTrue));
+                    result.add(new UserMealWithExcess(userMeal, new BooleanContainer(true)));
                 } else {
                     filteredUserMeal.add(userMeal);
                 }
             }
         }
         for (UserMeal userMeal : filteredUserMeal) {
-            Boolean[] bTrue = new Boolean[] {map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay};
-            result.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), bTrue));
+            result.add(new UserMealWithExcess(userMeal, new BooleanContainer(map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay)));
         }
         return result;
     }
@@ -72,7 +70,7 @@ public class UserMealsUtil {
         final Map<LocalDate, Integer> map = meals.stream().collect(Collectors.groupingBy(userMeal -> userMeal.getDateTime().toLocalDate(), Collectors.summingInt(UserMeal::getCalories)));
         return meals.stream()
                 .filter(userMeal1 -> TimeUtil.isBetweenHalfOpen(userMeal1.getDateTime().toLocalTime(), startTime, endTime))
-                .map(userMeal1 -> new UserMealWithExcess(userMeal1.getDateTime(), userMeal1.getDescription(), userMeal1.getCalories(), new Boolean[]{map.get(userMeal1.getDateTime().toLocalDate()) > caloriesPerDay}))
+                .map(userMeal1 -> new UserMealWithExcess(userMeal1, new BooleanContainer(map.get(userMeal1.getDateTime().toLocalDate()) > caloriesPerDay)))
                 .collect(Collectors.toList());
     }
 
@@ -82,17 +80,16 @@ public class UserMealsUtil {
             return result;
         }
         Map<LocalDate, Integer> map = new HashMap<>();
-        Map<LocalDate, Boolean[]> mapBool = new HashMap<>();
+        Map<LocalDate, BooleanContainer> mapBool = new HashMap<>();
         for (UserMeal userMeal : meals) {
             map.merge(userMeal.getDateTime().toLocalDate(), userMeal.getCalories(), Integer::sum);
             if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
-                mapBool.putIfAbsent(userMeal.getDateTime().toLocalDate(), new Boolean[] {false});
-                UserMealWithExcess userMealWithExcess = new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), mapBool.get(userMeal.getDateTime().toLocalDate()));
-
+                mapBool.putIfAbsent(userMeal.getDateTime().toLocalDate(), new BooleanContainer(false));
+                UserMealWithExcess userMealWithExcess = new UserMealWithExcess(userMeal, mapBool.get(userMeal.getDateTime().toLocalDate()));
                 result.add(userMealWithExcess);
             }
             if (mapBool.get(userMeal.getDateTime().toLocalDate()) != null)
-                mapBool.get(userMeal.getDateTime().toLocalDate())[0] = map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay;
+                mapBool.get(userMeal.getDateTime().toLocalDate()).set(map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay);
         }
         return result;
     }
@@ -107,7 +104,7 @@ public class UserMealsUtil {
 
     private static class MyCollector implements Collector<UserMeal, List<UserMealWithExcess>, List<UserMealWithExcess>> {
         ConcurrentMap<LocalDate, Integer> map = new ConcurrentHashMap<>();
-        ConcurrentMap<LocalDate, Boolean[]> mapBool = new ConcurrentHashMap<>();
+        ConcurrentMap<LocalDate, BooleanContainer> mapBool = new ConcurrentHashMap<>();
         LocalTime startTime;
         LocalTime endTime;
         Integer caloriesPerDay;
@@ -128,12 +125,12 @@ public class UserMealsUtil {
             return (userMealWithExcesses, userMeal) -> {
                 map.merge(userMeal.getDateTime().toLocalDate(), userMeal.getCalories(), Integer::sum);
                 if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
-                    mapBool.putIfAbsent(userMeal.getDateTime().toLocalDate(), new Boolean[]{false});
-                    UserMealWithExcess userMealWithExcess = new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), mapBool.get(userMeal.getDateTime().toLocalDate()));
+                    mapBool.putIfAbsent(userMeal.getDateTime().toLocalDate(), new BooleanContainer(false));
+                    UserMealWithExcess userMealWithExcess = new UserMealWithExcess(userMeal, mapBool.get(userMeal.getDateTime().toLocalDate()));
                     userMealWithExcesses.add(userMealWithExcess);
                 }
                 if (mapBool.get(userMeal.getDateTime().toLocalDate()) != null)
-                    mapBool.get(userMeal.getDateTime().toLocalDate())[0] = map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay;
+                    mapBool.get(userMeal.getDateTime().toLocalDate()).set(map.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay);
             };
         }
 
