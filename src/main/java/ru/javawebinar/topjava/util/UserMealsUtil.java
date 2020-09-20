@@ -36,10 +36,10 @@ public class UserMealsUtil {
         for (int i = 0; i < 10000000; i++) {
             list.addAll(meals);
         }
-        List<UserMeal> list10_000 = list.subList(0,10_000);
-        List<UserMeal> list100_000 = list.subList(0,100_000);
-        List<UserMeal> list1_000_000 = list.subList(0,1_000_000);
-        List<UserMeal> list10_000_000 = list.subList(0,10_000_000);
+        List<UserMeal> list10_000 = list.subList(0, 10_000);
+        List<UserMeal> list100_000 = list.subList(0, 100_000);
+        List<UserMeal> list1_000_000 = list.subList(0, 1_000_000);
+        List<UserMeal> list10_000_000 = list.subList(0, 10_000_000);
 
         System.out.println("Test filteredByCycles()");
         testFilteredByCycles(meals, "========Test for meals.size() = 10", false);
@@ -80,39 +80,44 @@ public class UserMealsUtil {
         testFilteredByStreams_3(list1_000_000, "\n========Test for meals.size() = 1_000_000", false);
         testFilteredByStreams_3(list10_000_000, "\n========Test for meals.size() = 10_000_000", false);
     }
+
     private static void testFilteredByCycles(List<UserMeal> meals, String message, boolean resultToConsole) {
         System.out.print(message);
         long startTime = System.nanoTime();
         List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        System.out.print(" Time " + (System.nanoTime()-startTime)/1000000000.0 + ";");
+        System.out.print(" Time " + (System.nanoTime() - startTime) / 1000000000.0 + ";");
         if (resultToConsole) mealsTo.forEach(System.out::println);
     }
+
     private static void testFilteredByCycles_2(List<UserMeal> meals, String message, boolean resultToConsole) {
         System.out.print(message);
         long startTime = System.nanoTime();
         List<UserMealWithExcessMod> mealsTo = filteredByCycles_2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        System.out.print(" Time " + (System.nanoTime()-startTime)/1000000000.0 + ";");
+        System.out.print(" Time " + (System.nanoTime() - startTime) / 1000000000.0 + ";");
         if (resultToConsole) mealsTo.forEach(System.out::println);
     }
+
     private static void testFilteredByStreams(List<UserMeal> meals, String message, boolean resultToConsole) {
         System.out.print(message);
         long startTime = System.nanoTime();
         List<UserMealWithExcess> mealsTo1 = filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        System.out.print(" Time " + (System.nanoTime()-startTime)/1000000000.0 + ";");
+        System.out.print(" Time " + (System.nanoTime() - startTime) / 1000000000.0 + ";");
         if (resultToConsole) mealsTo1.forEach(System.out::println);
     }
+
     private static void testFilteredByStreams_2(List<UserMeal> meals, String message, boolean resultToConsole) {
         System.out.print(message);
         long startTime = System.nanoTime();
         List<UserMealWithExcess> mealsTo2 = filteredByStreams_2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        System.out.print(" Time " + (System.nanoTime()-startTime)/1000000000.0 + ";");
+        System.out.print(" Time " + (System.nanoTime() - startTime) / 1000000000.0 + ";");
         if (resultToConsole) mealsTo2.forEach(System.out::println);
     }
+
     private static void testFilteredByStreams_3(List<UserMeal> meals, String message, boolean resultToConsole) {
         System.out.print(message);
         long startTime = System.nanoTime();
         List<UserMealWithExcessMod> mealsTo4 = filteredByStreams_3(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        System.out.print(" Time " + (System.nanoTime()-startTime)/1000000000.0 + ";");
+        System.out.print(" Time " + (System.nanoTime() - startTime) / 1000000000.0 + ";");
         if (resultToConsole) mealsTo4.forEach(System.out::println);
     }
 
