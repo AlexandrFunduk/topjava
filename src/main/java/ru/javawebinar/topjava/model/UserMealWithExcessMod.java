@@ -1,8 +1,7 @@
 package ru.javawebinar.topjava.model;
 
-import ru.javawebinar.topjava.util.BooleanContainer;
-
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class UserMealWithExcessMod {
     private final LocalDateTime dateTime;
@@ -11,19 +10,12 @@ public class UserMealWithExcessMod {
 
     private final int calories;
 
-    private final BooleanContainer excess;
+    private final AtomicBoolean excess;
 
-    public UserMealWithExcessMod(LocalDateTime dateTime, String description, int calories, BooleanContainer excess) {
+    public UserMealWithExcessMod(LocalDateTime dateTime, String description, int calories, AtomicBoolean excess) {
         this.dateTime = dateTime;
         this.description = description;
         this.calories = calories;
-        this.excess = excess;
-    }
-
-    public UserMealWithExcessMod(UserMeal userMeal, BooleanContainer excess) {
-        this.dateTime = userMeal.getDateTime();
-        this.description = userMeal.getDescription();
-        this.calories = userMeal.getCalories();
         this.excess = excess;
     }
 

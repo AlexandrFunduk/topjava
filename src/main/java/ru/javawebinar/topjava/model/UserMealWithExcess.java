@@ -1,8 +1,5 @@
 package ru.javawebinar.topjava.model;
 
-import ru.javawebinar.topjava.util.BooleanContainer;
-
-import javax.jws.soap.SOAPBinding;
 import java.time.LocalDateTime;
 
 public class UserMealWithExcess {
