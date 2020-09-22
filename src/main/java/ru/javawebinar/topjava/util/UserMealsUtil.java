@@ -51,13 +51,13 @@ public class UserMealsUtil {
         if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
             return result;
         }
-        Map<LocalDate, Integer> map = new HashMap<>();
+        Map<LocalDate, Integer> mapCaloriesPerDay = new HashMap<>();
         for (UserMeal userMeal : meals) {
-            map.merge(userMeal.getDateTime().toLocalDate(), userMeal.getCalories(), Integer::sum);
+            mapCaloriesPerDay.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
         }
         for (UserMeal userMeal : meals) {
             if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                result.add(createUserMealWithExcess(userMeal, map.get(getDate(userMeal)) > caloriesPerDay));
+                result.add(createUserMealWithExcess(userMeal, mapCaloriesPerDay.get(getDate(userMeal)) > caloriesPerDay));
             }
         }
         return result;
@@ -72,14 +72,16 @@ public class UserMealsUtil {
         Map<LocalDate, Integer> mapCaloriesPerDay = new HashMap<>();
         Map<LocalDate, AtomicBoolean> mapDayExcess = new HashMap<>();
         for (UserMeal userMeal : meals) {
-            mapCaloriesPerDay.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
+            LocalDate date = getDate(userMeal);
+            int currentCaloriesPerDay = mapCaloriesPerDay.merge(date, userMeal.getCalories(), Integer::sum);
             if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                mapDayExcess.computeIfAbsent(getDate(userMeal), localDate -> new AtomicBoolean(mapCaloriesPerDay.get(getDate(userMeal)) > caloriesPerDay));
-                UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal, mapDayExcess.get(getDate(userMeal)));
+                UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal,
+                        mapDayExcess.computeIfAbsent(date, localDate -> new AtomicBoolean(currentCaloriesPerDay > caloriesPerDay)));
                 result.add(userMealWithExcessMod);
             }
-            if (mapDayExcess.get(getDate(userMeal)) != null && !mapDayExcess.get(getDate(userMeal)).get() && mapCaloriesPerDay.get(getDate(userMeal)) > caloriesPerDay) {
-                mapDayExcess.get(getDate(userMeal)).set(true);
+            boolean excess = mapDayExcess.getOrDefault(date, new AtomicBoolean(true)).get();
+            if (!excess && currentCaloriesPerDay > caloriesPerDay) {
+                mapDayExcess.get(date).set(true);
             }
         }
         return result;
@@ -128,14 +130,16 @@ public class UserMealsUtil {
         @Override
         public BiConsumer<ContainerForAccumulator, UserMeal> accumulator() {
             return (accumulator, userMeal) -> {
-                accumulator.getMapCaloriesPerDay().merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
+                LocalDate date = getDate(userMeal);
+                Integer currentCaloriesPerDay =  accumulator.getMapCaloriesPerDay().merge(date, userMeal.getCalories(), Integer::sum);
                 if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    mapDayExcess.computeIfAbsent(getDate(userMeal), localDate -> new AtomicBoolean(accumulator.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay));
-                    UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal, mapDayExcess.get(getDate(userMeal)));
+                    mapDayExcess.computeIfAbsent(date, localDate -> new AtomicBoolean(currentCaloriesPerDay > caloriesPerDay));
+                    UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal,
+                            mapDayExcess.computeIfAbsent(date, localDate -> new AtomicBoolean(currentCaloriesPerDay > caloriesPerDay)));
                     accumulator.getUserMealWithExcessesMod().add(userMealWithExcessMod);
                 }
-                if (mapDayExcess.get(getDate(userMeal)) != null && !mapDayExcess.get(getDate(userMeal)).get() && accumulator.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay) {
-                    mapDayExcess.get(getDate(userMeal)).set(true);
+                if (mapDayExcess.get(date) != null && !mapDayExcess.get(date).get() && accumulator.getMapCaloriesPerDay().get(date) > caloriesPerDay) {
+                    mapDayExcess.get(date).set(true);
                 }
             };
         }
