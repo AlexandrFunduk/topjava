@@ -28,11 +28,21 @@ public class UserMealsUtil {
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 8, 0), "Завтрак", 700),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 11, 0), "Обед", 900),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 23, 0), "Ужин", 300)
+                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
         );
+
+        System.out.println(">>filteredByCycles");
+        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsTo.forEach(System.out::println);
+        System.out.println(">>filteredByCycles2");
+        List<UserMealWithExcessMod> mealsToMod = filteredByCycles2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsToMod.forEach(System.out::println);
+        System.out.println(">>filteredByStreams");
+        mealsTo = filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsTo.forEach(System.out::println);
+        System.out.println(">>filteredByStreams2");
+        mealsToMod = filteredByStreams2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsToMod.forEach(System.out::println);
     }
 
     // two cycles for unmodified class
@@ -75,8 +85,7 @@ public class UserMealsUtil {
         return result;
     }
 
-
-    // stream for unmodified class. Using an external collection.
+    // stream for unmodified class. Using an external collection
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
             return new ArrayList<>();
@@ -89,59 +98,64 @@ public class UserMealsUtil {
                 .collect(Collectors.toList());
     }
 
-    // Решение для не модифицированного класса с проходом по внутренней коллекции в методе finisher()
-    public static List<UserMealWithExcess> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+    // stream for modified class. Using custom collector without using an external collection.
+    public static List<UserMealWithExcessMod> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
             return new ArrayList<>();
         }
         return meals.stream()
-                .collect(new CollectorForNoEditClass(startTime, endTime, caloriesPerDay));
+                .collect(new CollectorUserMealToUserMealWithExcessMod(startTime, endTime, caloriesPerDay));
     }
 
-    //данный коллектор может работать с оригинальной реализацией класса UserMealWithExcess использующей тип boolean
-    private static class CollectorForNoEditClass implements Collector<UserMeal, List<UserMeal>, List<UserMealWithExcess>> {
-        private final ConcurrentMap<LocalDate, Integer> mapCaloriesPerDay = new ConcurrentHashMap<>();
-        private final ConcurrentMap<LocalDate, AtomicBoolean> mapDayExcess = new ConcurrentHashMap<>();
+    // collector for modified class. Without using an external collection.
+    private static class CollectorUserMealToUserMealWithExcessMod implements Collector<UserMeal, ContainerForAccumulator, List<UserMealWithExcessMod>> {
         private final LocalTime startTime;
         private final LocalTime endTime;
         private final Integer caloriesPerDay;
+        private final ConcurrentMap<LocalDate, AtomicBoolean> mapDayExcess = new ConcurrentHashMap<>();
 
-        public CollectorForNoEditClass(LocalTime startTime, LocalTime endTime, Integer caloriesPerDay) {
+        public CollectorUserMealToUserMealWithExcessMod(LocalTime startTime, LocalTime endTime, Integer caloriesPerDay) {
             this.startTime = startTime;
             this.endTime = endTime;
             this.caloriesPerDay = caloriesPerDay;
         }
 
         @Override
-        public Supplier<List<UserMeal>> supplier() {
-            return ArrayList::new;
+        public Supplier<ContainerForAccumulator> supplier() {
+            return ContainerForAccumulator::new;
         }
 
         @Override
-        public BiConsumer<List<UserMeal>, UserMeal> accumulator() {
-            return (userMeals, userMeal) -> {
-                mapCaloriesPerDay.merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
+        public BiConsumer<ContainerForAccumulator, UserMeal> accumulator() {
+            return (accumulator, userMeal) -> {
+                accumulator.getMapCaloriesPerDay().merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
                 if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    mapDayExcess.computeIfAbsent(getDate(userMeal), localDate -> new AtomicBoolean(mapCaloriesPerDay.get(getDate(userMeal)) > caloriesPerDay));
-                    userMeals.add(userMeal);
+                    mapDayExcess.computeIfAbsent(getDate(userMeal), localDate -> new AtomicBoolean(accumulator.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay));
+                    UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal, mapDayExcess.get(getDate(userMeal)));
+                    accumulator.getUserMealWithExcessesMod().add(userMealWithExcessMod);
                 }
-                if (mapDayExcess.get(userMeal.getDateTime().toLocalDate()) != null) {
-                    mapDayExcess.get(userMeal.getDateTime().toLocalDate()).set(mapCaloriesPerDay.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay);
+                if (mapDayExcess.get(getDate(userMeal)) != null && !mapDayExcess.get(getDate(userMeal)).get() && accumulator.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay) {
+                    mapDayExcess.get(getDate(userMeal)).set(true);
                 }
             };
         }
 
         @Override
-        public BinaryOperator<List<UserMeal>> combiner() {
-            return (userMeals, userMeals1) -> {
-                userMeals.addAll(userMeals1);
-                return userMeals;
+        public BinaryOperator<ContainerForAccumulator> combiner() {
+            return (accumulator, accumulator2) -> {
+                accumulator.getUserMealWithExcessesMod().addAll(accumulator2.getUserMealWithExcessesMod());
+                accumulator2.getMapCaloriesPerDay().forEach((localDate, integer) -> {
+                    if (accumulator.getMapCaloriesPerDay().merge(localDate, integer, Integer::sum) > caloriesPerDay) {
+                        mapDayExcess.get(localDate).set(true);
+                    }
+                });
+                return accumulator;
             };
         }
 
         @Override
-        public Function<List<UserMeal>, List<UserMealWithExcess>> finisher() {
-            return userMeals -> userMeals.stream().map(userMeal -> new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), mapDayExcess.get(userMeal.getDateTime().toLocalDate()).get())).collect(Collectors.toList());
+        public Function<ContainerForAccumulator, List<UserMealWithExcessMod>> finisher() {
+            return ContainerForAccumulator::getUserMealWithExcessesMod;
         }
 
         @Override
@@ -151,133 +165,11 @@ public class UserMealsUtil {
         }
     }
 
-    // Решение для модифицированного класса в один проход с использованием коллектора без метода finisher()
-    // (java.lang.OutOfMemoryError: GC overhead limit exceeded при meals.size() = 100000000)
-    public static List<UserMealWithExcessMod> filteredByStreams_3(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
-            return new ArrayList<>();
-        }
-        return meals.stream().collect(new CollectorForEditClass(startTime, endTime, caloriesPerDay));
-    }
-
-    // Коллектор выполняется в один проход и игнорирует метод finisher() фактически повторяя алгоритм решение filteredByCycles_1
-    private static class CollectorForEditClass implements Collector<UserMeal, List<UserMealWithExcessMod>, List<UserMealWithExcessMod>> {
-        private final ConcurrentMap<LocalDate, Integer> mapCaloriesPerDay = new ConcurrentHashMap<>();
-        private final ConcurrentMap<LocalDate, AtomicBoolean> mapDayExcess = new ConcurrentHashMap<>();
-        private final LocalTime startTime;
-        private final LocalTime endTime;
-        private final Integer caloriesPerDay;
-
-        public CollectorForEditClass(LocalTime startTime, LocalTime endTime, Integer caloriesPerDay) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.caloriesPerDay = caloriesPerDay;
-        }
-
-        @Override
-        public Supplier<List<UserMealWithExcessMod>> supplier() {
-            return ArrayList::new;
-        }
-
-        @Override
-        public BiConsumer<List<UserMealWithExcessMod>, UserMeal> accumulator() {
-            return (userMealWithExcesses, userMeal) -> {
-                mapCaloriesPerDay.merge(userMeal.getDateTime().toLocalDate(), userMeal.getCalories(), Integer::sum);
-                if (TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
-                    mapDayExcess.putIfAbsent(userMeal.getDateTime().toLocalDate(), new BooleanContainer(false));
-                    UserMealWithExcessMod userMealWithExcessMod = new UserMealWithExcessMod(userMeal, mapDayExcess.get(userMeal.getDateTime().toLocalDate()));
-                    userMealWithExcesses.add(userMealWithExcessMod);
-                }
-                if (mapDayExcess.get(userMeal.getDateTime().toLocalDate()) != null) {
-                    mapDayExcess.get(userMeal.getDateTime().toLocalDate()).set(mapCaloriesPerDay.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay);
-                }
-            };
-        }
-
-        @Override
-        public BinaryOperator<List<UserMealWithExcessMod>> combiner() {
-            return (userMealWithExcesses, userMealWithExcesses2) -> {
-                userMealWithExcesses.addAll(userMealWithExcesses2);
-                return userMealWithExcesses;
-            };
-        }
-
-        @Override
-        public Function<List<UserMealWithExcessMod>, List<UserMealWithExcessMod>> finisher() {
-            return userMealWithExcesses -> userMealWithExcesses;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.unmodifiableSet(EnumSet.of(Collector.Characteristics.CONCURRENT,
-                    Collector.Characteristics.UNORDERED,
-                    Collector.Characteristics.IDENTITY_FINISH));
-        }
-    }
-
-    private static class Collector3 implements Collector<UserMeal, Container, List<UserMealWithExcessMod>> {
-        private final LocalTime startTime;
-        private final LocalTime endTime;
-        private final Integer caloriesPerDay;
-        private final ConcurrentMap<LocalDate, AtomicBoolean> mapDayExcess = new ConcurrentHashMap<>();
-
-        public Collector3(LocalTime startTime, LocalTime endTime, Integer caloriesPerDay) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.caloriesPerDay = caloriesPerDay;
-        }
-
-        @Override
-        public Supplier<Container> supplier() {
-            return Container::new;
-        }
-
-        @Override
-        public BiConsumer<Container, UserMeal> accumulator() {
-            return (container, userMeal) -> {
-                container.getMapCaloriesPerDay().merge(getDate(userMeal), userMeal.getCalories(), Integer::sum);
-                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    mapDayExcess.computeIfAbsent(getDate(userMeal), localDate -> new AtomicBoolean(container.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay));
-                    UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal, mapDayExcess.get(getDate(userMeal)));
-                    container.getUserMealWithExcessesMod().add(userMealWithExcessMod);
-                }
-                if (mapDayExcess.get(getDate(userMeal)) != null && !mapDayExcess.get(getDate(userMeal)).get() && container.getMapCaloriesPerDay().get(getDate(userMeal)) > caloriesPerDay) {
-                    mapDayExcess.get(getDate(userMeal)).set(true);
-                }
-            };
-        }
-
-        @Override
-        public BinaryOperator<Container> combiner() {
-            return (container, container2) -> {
-                container.getUserMealWithExcessesMod().addAll(container2.getUserMealWithExcessesMod());
-                container2.getMapCaloriesPerDay().forEach((localDate, integer) -> {
-                    if (container.getMapCaloriesPerDay().merge(localDate, integer, Integer::sum) > caloriesPerDay) {
-                        mapDayExcess.get(localDate).set(true);
-                    }
-                });
-                return container;
-            };
-        }
-
-        @Override
-        public Function<Container, List<UserMealWithExcessMod>> finisher() {
-            return Container::getUserMealWithExcessesMod;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.unmodifiableSet(EnumSet.of(Collector.Characteristics.CONCURRENT,
-                    Collector.Characteristics.UNORDERED,
-                    Collector.Characteristics.IDENTITY_FINISH));
-        }
-    }
-
-    private static class Container {
+    private static class ContainerForAccumulator {
         private final List<UserMealWithExcessMod> userMealWithExcessesMod;
         private final Map<LocalDate, Integer> mapCaloriesPerDay;
 
-        public Container() {
+        public ContainerForAccumulator() {
             this.userMealWithExcessesMod = new ArrayList<>();
             this.mapCaloriesPerDay = new HashMap<>();
         }
