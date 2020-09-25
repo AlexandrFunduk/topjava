@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -21,9 +19,6 @@ import java.util.stream.Collectors;
 public class UserMealsUtil {
     public static void main(String[] args) {
         List<UserMeal> meals = Arrays.asList(
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 10, 0), "Завтрак", 500),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 13, 0), "Обед", 1000),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 29, 20, 0), "Ужин", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500),
@@ -43,9 +38,7 @@ public class UserMealsUtil {
         mealsTo = filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
         mealsTo.forEach(System.out::println);
         System.out.println(">>filteredByStreams2");
-        mealsToMod = filteredByStreams2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
-        mealsToMod.forEach(System.out::println);
-        mealsTo = filteredByStreams3(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
+        mealsTo = filteredByStreams2(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000);
         mealsTo.forEach(System.out::println);
 
     }
@@ -97,93 +90,52 @@ public class UserMealsUtil {
         if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
             return new ArrayList<>();
         }
-        final Map<LocalDate, Integer> caloriesPerDays = meals.stream()
-                .collect(Collectors.groupingBy(UserMealsUtil::getDate, Collectors.summingInt(UserMeal::getCalories)));
+        final Map<LocalDate, Boolean> excesses = meals.stream().collect(Collectors.groupingBy(UserMealsUtil::getDate, new CollectorCaloriesToExcess(caloriesPerDay)));
         return meals.stream()
                 .filter(userMeal -> TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime))
-                .map(userMeal -> createUserMealWithExcess(userMeal, caloriesPerDays.get(getDate(userMeal)) > caloriesPerDay))
+                .map(userMeal -> createUserMealWithExcess(userMeal, excesses.get(getDate(userMeal))))
                 .collect(Collectors.toList());
     }
 
-    // stream for modified class. Using custom collector without using an external collection.
-    public static List<UserMealWithExcessMod> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
-            return new ArrayList<>();
-        }
-        return meals.stream()
-                .collect(new CollectorUserMealToUserMealWithExcessMod(startTime, endTime, caloriesPerDay));
-    }
+    // collector return excess for one dey
+    private static class CollectorCaloriesToExcess implements java.util.stream.Collector<UserMeal, int[], Boolean> {
+        private final int caloriesPerDay;
 
-    // collector for modified class. Without using an external collection.
-    private static class CollectorUserMealToUserMealWithExcessMod implements java.util.stream.Collector<UserMeal, List<UserMealWithExcessMod>, List<UserMealWithExcessMod>> {
-        private final LocalTime startTime;
-        private final LocalTime endTime;
-        private final Integer caloriesPerDay;
-        private final ConcurrentMap<LocalDate, CaloriesAndExcess> caloriesAndExcessByDay = new ConcurrentHashMap<>();
-
-        public CollectorUserMealToUserMealWithExcessMod(LocalTime startTime, LocalTime endTime, Integer caloriesPerDay) {
-            this.startTime = startTime;
-            this.endTime = endTime;
+        public CollectorCaloriesToExcess(int caloriesPerDay) {
             this.caloriesPerDay = caloriesPerDay;
         }
 
         @Override
-        public Supplier<List<UserMealWithExcessMod>> supplier() {
-            return ArrayList::new;
+        public Supplier<int[]> supplier() {
+            return () -> new int[1];
         }
 
         @Override
-        public BiConsumer<List<UserMealWithExcessMod>, UserMeal> accumulator() {
-            return (UserMealWithExcessMods, userMeal) -> {
-                LocalDate date = getDate(userMeal);
-                caloriesAndExcessByDay.compute(date, (date1, caloriesAndExcess) -> caloriesAndExcess != null ? caloriesAndExcess.addCalories(userMeal) : new CaloriesAndExcess(userMeal, caloriesPerDay));
-                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    UserMealWithExcessMods
-                            .add(createUserMealWithExcessMod(userMeal, caloriesAndExcessByDay.get(date).excess));
-                }
+        public BiConsumer<int[], UserMeal> accumulator() {
+            return (ints, userMeal) -> ints[0] += userMeal.getCalories();
+        }
+
+        @Override
+        public BinaryOperator<int[]> combiner() {
+            return (integers, integers2) -> {
+                integers[0] = +integers2[0];
+                return integers;
             };
         }
 
         @Override
-        public BinaryOperator<List<UserMealWithExcessMod>> combiner() {
-            return (userMealWithExcessMods, userMealWithExcessMods2) -> {
-                userMealWithExcessMods.addAll(userMealWithExcessMods2);
-                return userMealWithExcessMods;
-            };
-        }
-
-        @Override
-        public Function<List<UserMealWithExcessMod>, List<UserMealWithExcessMod>> finisher() {
-            return userMealWithExcessMods -> userMealWithExcessMods;
+        public Function<int[], Boolean> finisher() {
+            return integers -> integers[0] > caloriesPerDay;
         }
 
         @Override
         public Set<Characteristics> characteristics() {
-            return Collections.unmodifiableSet(EnumSet.of(java.util.stream.Collector.Characteristics.CONCURRENT,
-                    java.util.stream.Collector.Characteristics.UNORDERED,
-                    Characteristics.IDENTITY_FINISH));
+            return Collections.emptySet();
         }
     }
 
-
-    public static LocalTime getTime(UserMeal userMeal) {
-        return userMeal.getDateTime().toLocalTime();
-    }
-
-    public static LocalDate getDate(UserMeal userMeal) {
-        return userMeal.getDateTime().toLocalDate();
-    }
-
-    public static UserMealWithExcess createUserMealWithExcess(UserMeal userMeal, boolean excess) {
-        return new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), excess);
-    }
-
-    public static UserMealWithExcessMod createUserMealWithExcessMod(UserMeal userMeal, AtomicBoolean excess) {
-        return new UserMealWithExcessMod(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), excess);
-    }
-
     // stream for unmodified class
-    public static List<UserMealWithExcess> filteredByStreams3(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+    public static List<UserMealWithExcess> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         return meals.stream()
                 .collect(Collectors
                         .collectingAndThen(
@@ -193,7 +145,8 @@ public class UserMealsUtil {
                                 localDateListMap -> localDateListMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList())));
 
     }
-    // collector v2 for modified class. Without using an external collection.
+
+    // collector for unmodified class. Without using an external collection
     private static class CollectorToUserMealWithExcesses implements java.util.stream.Collector<UserMeal, ContainerIntUM, List<UserMealWithExcess>> {
         private final int caloriesPerDay;
         private final LocalTime startTime;
@@ -240,70 +193,10 @@ public class UserMealsUtil {
         }
     }
 
-
-    private static class CollectorCaloriesToExcess implements java.util.stream.Collector<UserMeal, int[], Boolean> {
-        private final int caloriesPerDay;
-
-        public CollectorCaloriesToExcess(int caloriesPerDay) {
-            this.caloriesPerDay = caloriesPerDay;
-        }
-
-        @Override
-        public Supplier<int[]> supplier() {
-            return () -> new int[1];
-        }
-
-        @Override
-        public BiConsumer<int[], UserMeal> accumulator() {
-            return (ints, userMeal) -> ints[0] += userMeal.getCalories();
-        }
-
-        @Override
-        public BinaryOperator<int[]> combiner() {
-            return (integers, integers2) -> {
-                integers[0] = +integers2[0];
-                return integers;
-            };
-        }
-
-        @Override
-        public Function<int[], Boolean> finisher() {
-            return integers -> integers[0] > caloriesPerDay;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.emptySet();
-        }
-    }
-
-    private static class CaloriesAndExcess {
-        private final AtomicBoolean excess = new AtomicBoolean(false);
-        private int calories;
-        private final int caloriesPerDay;
-
-        public CaloriesAndExcess(UserMeal meal, Integer caloriesPerDay) {
-            this.calories = meal.getCalories();
-            this.caloriesPerDay = caloriesPerDay;
-            if (this.calories > caloriesPerDay) {
-                excess.set(true);
-            }
-        }
-
-        public synchronized CaloriesAndExcess addCalories(UserMeal meal) {
-            if (!excess.get()) {
-                this.calories += meal.getCalories();
-                if (this.calories > caloriesPerDay) {
-                    excess.set(true);
-                }
-            }
-            return this;
-        }
-    }
-
+    // container for accumulator
     private static class ContainerIntUM {
         private int calories;
-        private List<UserMeal> meals = new ArrayList<>();
+        private final List<UserMeal> meals = new ArrayList<>();
 
         public int getCalories() {
             return calories;
@@ -327,5 +220,22 @@ public class UserMealsUtil {
             return c1;
         }
     }
+
+    public static LocalTime getTime(UserMeal userMeal) {
+        return userMeal.getDateTime().toLocalTime();
+    }
+
+    public static LocalDate getDate(UserMeal userMeal) {
+        return userMeal.getDateTime().toLocalDate();
+    }
+
+    public static UserMealWithExcess createUserMealWithExcess(UserMeal userMeal, boolean excess) {
+        return new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), excess);
+    }
+
+    public static UserMealWithExcessMod createUserMealWithExcessMod(UserMeal userMeal, AtomicBoolean excess) {
+        return new UserMealWithExcessMod(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), excess);
+    }
+
 
 }
