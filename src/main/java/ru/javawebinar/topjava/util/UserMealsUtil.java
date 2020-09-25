@@ -80,7 +80,7 @@ public class UserMealsUtil {
                 result.add(userMealWithExcessMod);
             }
             if (!excess.get() && currentCaloriesPerDay > caloriesPerDay) {
-                dayExcess.get(date).set(true);
+                excess.set(true);
             }
         }
         return result;
@@ -102,36 +102,34 @@ public class UserMealsUtil {
     // stream for unmodified class
     public static List<UserMealWithExcess> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // collector for unmodified class. Without using an external collection
-        class CollectorToUserMealWithExcesses implements Collector<UserMeal, ContainerIntUM, Stream<UserMealWithExcess>> {
-            private int calories;
-            private final List<UserMeal> meals = new ArrayList<>();
-
+        class CollectorToUserMealWithExcesses implements Collector<UserMeal, AbstractMap.SimpleEntry<List<UserMeal>, Integer>, Stream<UserMealWithExcess>> {
             @Override
-            public Supplier<ContainerIntUM> supplier() {
-                return ContainerIntUM::new;
+            public Supplier<AbstractMap.SimpleEntry<List<UserMeal>, Integer>> supplier() {
+                return () -> new AbstractMap.SimpleEntry<>(new ArrayList<>(), 0);
             }
 
             @Override
-            public BiConsumer<ContainerIntUM, UserMeal> accumulator() {
-                return (containerIntUM, userMeal) -> {
-                    containerIntUM.addCalories(userMeal.getCalories());
+            public BiConsumer<AbstractMap.SimpleEntry<List<UserMeal>, Integer>, UserMeal> accumulator() {
+                return (listIntegerSimpleEntry, userMeal) -> {
+                    listIntegerSimpleEntry.setValue(listIntegerSimpleEntry.getValue() + userMeal.getCalories());
                     if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                        containerIntUM.addMeal(userMeal);
+                        listIntegerSimpleEntry.getKey().add(userMeal);
                     }
                 };
             }
 
             @Override
-            public BinaryOperator<ContainerIntUM> combiner() {
-                return ContainerIntUM::union;
+            public BinaryOperator<AbstractMap.SimpleEntry<List<UserMeal>, Integer>> combiner() {
+                return (listIntegerSimpleEntry, listIntegerSimpleEntry2) -> {
+                    listIntegerSimpleEntry.getKey().addAll(listIntegerSimpleEntry2.getKey());
+                    listIntegerSimpleEntry.setValue(listIntegerSimpleEntry.getValue() + listIntegerSimpleEntry2.getValue());
+                    return listIntegerSimpleEntry;
+                };
             }
 
             @Override
-            public Function<ContainerIntUM, Stream<UserMealWithExcess>> finisher() {
-                return containerIntUM -> {
-                    boolean excess = containerIntUM.getCalories() > caloriesPerDay;
-                    return containerIntUM.getMeals().stream().map(userMeal -> createUserMealWithExcess(userMeal, excess));
-                };
+            public Function<AbstractMap.SimpleEntry<List<UserMeal>, Integer>, Stream<UserMealWithExcess>> finisher() {
+                return listIntegerSimpleEntry -> listIntegerSimpleEntry.getKey().stream().map(userMeal -> createUserMealWithExcess(userMeal, listIntegerSimpleEntry.getValue() > caloriesPerDay));
             }
 
             @Override
@@ -139,41 +137,10 @@ public class UserMealsUtil {
                 return Collections.emptySet();
             }
         }
-        return meals.stream()
-                .collect(Collectors
-                        .collectingAndThen(
-                                Collectors.groupingBy(
-                                        UserMealsUtil::getDate, new CollectorToUserMealWithExcesses()),
-                                localDateListMap -> localDateListMap.values().stream().flatMap(userMealWithExcessStream -> userMealWithExcessStream).collect(Collectors.toList())));
-    }
-
-
-    // container for accumulator
-    private static class ContainerIntUM {
-        private int calories;
-        private final List<UserMeal> meals = new ArrayList<>();
-
-        public int getCalories() {
-            return calories;
-        }
-
-        public List<UserMeal> getMeals() {
-            return meals;
-        }
-
-        public void addCalories(Integer calories) {
-            this.calories += calories;
-        }
-
-        public void addMeal(UserMeal userMeal) {
-            meals.add(userMeal);
-        }
-
-        public static ContainerIntUM union(ContainerIntUM c1, ContainerIntUM c2) {
-            c1.addCalories(c2.getCalories());
-            c1.getMeals().addAll(c2.getMeals());
-            return c1;
-        }
+        return meals.parallelStream().collect(Collectors
+                .collectingAndThen(Collectors.groupingBy(
+                        UserMealsUtil::getDate, new CollectorToUserMealWithExcesses()),
+                        localDateListMap -> localDateListMap.values().stream().flatMap(userMealWithExcessStream -> userMealWithExcessStream).collect(Collectors.toList())));
     }
 
     public static LocalTime getTime(UserMeal userMeal) {
