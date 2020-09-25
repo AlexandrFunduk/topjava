@@ -14,7 +14,9 @@ import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -72,13 +74,12 @@ public class UserMealsUtil {
         for (UserMeal userMeal : meals) {
             LocalDate date = getDate(userMeal);
             int currentCaloriesPerDay = caloriesPerDays.merge(date, userMeal.getCalories(), Integer::sum);
+            AtomicBoolean excess = dayExcess.computeIfAbsent(date, localDate -> new AtomicBoolean(currentCaloriesPerDay > caloriesPerDay));
             if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal,
-                        dayExcess.computeIfAbsent(date, localDate -> new AtomicBoolean(currentCaloriesPerDay > caloriesPerDay)));
+                UserMealWithExcessMod userMealWithExcessMod = createUserMealWithExcessMod(userMeal, excess);
                 result.add(userMealWithExcessMod);
             }
-            boolean excess = dayExcess.getOrDefault(date, new AtomicBoolean(true)).get();
-            if (!excess && currentCaloriesPerDay > caloriesPerDay) {
+            if (!excess.get() && currentCaloriesPerDay > caloriesPerDay) {
                 dayExcess.get(date).set(true);
             }
         }
@@ -90,108 +91,62 @@ public class UserMealsUtil {
         if (meals == null || meals.isEmpty() || (startTime != null && endTime != null && startTime.compareTo(endTime) > 0)) {
             return new ArrayList<>();
         }
-        final Map<LocalDate, Boolean> excesses = meals.stream().collect(Collectors.groupingBy(UserMealsUtil::getDate, new CollectorCaloriesToExcess(caloriesPerDay)));
+        final Map<LocalDate, Integer> caloriesPerDays = meals.stream()
+                .collect(Collectors.groupingBy(UserMealsUtil::getDate, Collectors.summingInt(UserMeal::getCalories)));
         return meals.stream()
                 .filter(userMeal -> TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime))
-                .map(userMeal -> createUserMealWithExcess(userMeal, excesses.get(getDate(userMeal))))
+                .map(userMeal -> createUserMealWithExcess(userMeal, caloriesPerDays.get(getDate(userMeal)) > caloriesPerDay))
                 .collect(Collectors.toList());
-    }
-
-    // collector return excess for one dey
-    private static class CollectorCaloriesToExcess implements java.util.stream.Collector<UserMeal, int[], Boolean> {
-        private final int caloriesPerDay;
-
-        public CollectorCaloriesToExcess(int caloriesPerDay) {
-            this.caloriesPerDay = caloriesPerDay;
-        }
-
-        @Override
-        public Supplier<int[]> supplier() {
-            return () -> new int[1];
-        }
-
-        @Override
-        public BiConsumer<int[], UserMeal> accumulator() {
-            return (ints, userMeal) -> ints[0] += userMeal.getCalories();
-        }
-
-        @Override
-        public BinaryOperator<int[]> combiner() {
-            return (integers, integers2) -> {
-                integers[0] = +integers2[0];
-                return integers;
-            };
-        }
-
-        @Override
-        public Function<int[], Boolean> finisher() {
-            return integers -> integers[0] > caloriesPerDay;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.emptySet();
-        }
     }
 
     // stream for unmodified class
     public static List<UserMealWithExcess> filteredByStreams2(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+        // collector for unmodified class. Without using an external collection
+        class CollectorToUserMealWithExcesses implements Collector<UserMeal, ContainerIntUM, Stream<UserMealWithExcess>> {
+            private int calories;
+            private final List<UserMeal> meals = new ArrayList<>();
+
+            @Override
+            public Supplier<ContainerIntUM> supplier() {
+                return ContainerIntUM::new;
+            }
+
+            @Override
+            public BiConsumer<ContainerIntUM, UserMeal> accumulator() {
+                return (containerIntUM, userMeal) -> {
+                    containerIntUM.addCalories(userMeal.getCalories());
+                    if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
+                        containerIntUM.addMeal(userMeal);
+                    }
+                };
+            }
+
+            @Override
+            public BinaryOperator<ContainerIntUM> combiner() {
+                return ContainerIntUM::union;
+            }
+
+            @Override
+            public Function<ContainerIntUM, Stream<UserMealWithExcess>> finisher() {
+                return containerIntUM -> {
+                    boolean excess = containerIntUM.getCalories() > caloriesPerDay;
+                    return containerIntUM.getMeals().stream().map(userMeal -> createUserMealWithExcess(userMeal, excess));
+                };
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return Collections.emptySet();
+            }
+        }
         return meals.stream()
                 .collect(Collectors
                         .collectingAndThen(
                                 Collectors.groupingBy(
-                                        UserMealsUtil::getDate,
-                                        new CollectorToUserMealWithExcesses(caloriesPerDay, startTime, endTime)),
-                                localDateListMap -> localDateListMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList())));
-
+                                        UserMealsUtil::getDate, new CollectorToUserMealWithExcesses()),
+                                localDateListMap -> localDateListMap.values().stream().flatMap(userMealWithExcessStream -> userMealWithExcessStream).collect(Collectors.toList())));
     }
 
-    // collector for unmodified class. Without using an external collection
-    private static class CollectorToUserMealWithExcesses implements java.util.stream.Collector<UserMeal, ContainerIntUM, List<UserMealWithExcess>> {
-        private final int caloriesPerDay;
-        private final LocalTime startTime;
-        private final LocalTime endTime;
-
-
-        private CollectorToUserMealWithExcesses(int caloriesPerDay, LocalTime startTime, LocalTime endTime) {
-            this.caloriesPerDay = caloriesPerDay;
-            this.startTime = startTime;
-            this.endTime = endTime;
-        }
-
-        @Override
-        public Supplier<ContainerIntUM> supplier() {
-            return ContainerIntUM::new;
-        }
-
-        @Override
-        public BiConsumer<ContainerIntUM, UserMeal> accumulator() {
-            return (containerIntUM, userMeal) -> {
-                containerIntUM.addCalories(userMeal.getCalories());
-                if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                    containerIntUM.addMeal(userMeal);
-                }
-            };
-        }
-
-        @Override
-        public BinaryOperator<ContainerIntUM> combiner() {
-            return ContainerIntUM::union;
-        }
-
-        @Override
-        public Function<ContainerIntUM, List<UserMealWithExcess>> finisher() {
-            return containerIntUM -> {
-                boolean excess = containerIntUM.getCalories() > caloriesPerDay;
-                return containerIntUM.getMeals().stream().map(userMeal -> createUserMealWithExcess(userMeal, excess)).collect(Collectors.toList());
-            };
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.emptySet();
-        }
-    }
 
     // container for accumulator
     private static class ContainerIntUM {
@@ -236,6 +191,4 @@ public class UserMealsUtil {
     public static UserMealWithExcessMod createUserMealWithExcessMod(UserMeal userMeal, AtomicBoolean excess) {
         return new UserMealWithExcessMod(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(), excess);
     }
-
-
 }
