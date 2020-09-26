@@ -110,26 +110,26 @@ public class UserMealsUtil {
 
             @Override
             public BiConsumer<AbstractMap.SimpleEntry<List<UserMeal>, Integer>, UserMeal> accumulator() {
-                return (listIntegerSimpleEntry, userMeal) -> {
-                    listIntegerSimpleEntry.setValue(listIntegerSimpleEntry.getValue() + userMeal.getCalories());
+                return (accumulator, userMeal) -> {
+                    accumulator.setValue(accumulator.getValue() + userMeal.getCalories());
                     if (TimeUtil.isBetweenHalfOpen(getTime(userMeal), startTime, endTime)) {
-                        listIntegerSimpleEntry.getKey().add(userMeal);
+                        accumulator.getKey().add(userMeal);
                     }
                 };
             }
 
             @Override
             public BinaryOperator<AbstractMap.SimpleEntry<List<UserMeal>, Integer>> combiner() {
-                return (listIntegerSimpleEntry, listIntegerSimpleEntry2) -> {
-                    listIntegerSimpleEntry.getKey().addAll(listIntegerSimpleEntry2.getKey());
-                    listIntegerSimpleEntry.setValue(listIntegerSimpleEntry.getValue() + listIntegerSimpleEntry2.getValue());
-                    return listIntegerSimpleEntry;
+                return (accumulator, accumulator2) -> {
+                    accumulator.getKey().addAll(accumulator2.getKey());
+                    accumulator.setValue(accumulator.getValue() + accumulator2.getValue());
+                    return accumulator;
                 };
             }
 
             @Override
             public Function<AbstractMap.SimpleEntry<List<UserMeal>, Integer>, Stream<UserMealWithExcess>> finisher() {
-                return listIntegerSimpleEntry -> listIntegerSimpleEntry.getKey().stream().map(userMeal -> createUserMealWithExcess(userMeal, listIntegerSimpleEntry.getValue() > caloriesPerDay));
+                return accumulator -> accumulator.getKey().stream().map(userMeal -> createUserMealWithExcess(userMeal, accumulator.getValue() > caloriesPerDay));
             }
 
             @Override
@@ -137,7 +137,8 @@ public class UserMealsUtil {
                 return Collections.emptySet();
             }
         }
-        return meals.parallelStream().collect(Collectors
+        return meals.parallelStream()
+                .collect(Collectors
                 .collectingAndThen(Collectors.groupingBy(
                         UserMealsUtil::getDate, new CollectorToUserMealWithExcesses()),
                         localDateListMap -> localDateListMap.values().stream().flatMap(userMealWithExcessStream -> userMealWithExcessStream).collect(Collectors.toList())));
