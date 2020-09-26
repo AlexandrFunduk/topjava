@@ -141,7 +141,7 @@ public class UserMealsUtil {
                 .collect(Collectors
                 .collectingAndThen(Collectors.groupingBy(
                         UserMealsUtil::getDate, new CollectorToUserMealWithExcesses()),
-                        localDateListMap -> localDateListMap.values().stream().flatMap(userMealWithExcessStream -> userMealWithExcessStream).collect(Collectors.toList())));
+                        localDateListMap -> localDateListMap.values().stream().flatMap(Function.identity()).collect(Collectors.toList())));
     }
 
     public static LocalTime getTime(UserMeal userMeal) {
