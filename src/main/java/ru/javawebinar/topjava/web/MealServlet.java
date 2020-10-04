@@ -17,26 +17,23 @@ import java.util.List;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class MealServlet extends HttpServlet {
-    private static final Logger log = getLogger(UserServlet.class);
+    private static final Logger log = getLogger(MealServlet.class);
     private final MealService mealService = new MealServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         if (pathInfo != null) {
-            if (pathInfo.equalsIgnoreCase("/delete")) {
-                Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
-                log.debug("Delete meal with id = {}", id);
-                mealService.deleteById(id);
-                response.sendRedirect(request.getContextPath() + "/meals");
-                return;
-            }
-            if (pathInfo.equalsIgnoreCase("/edit")) {
-                Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
-                log.debug("Forward to edit meal with id = {}", id);
-                request.setAttribute("meal", mealService.findById(id));
-                request.getRequestDispatcher("/updatemeal.jsp").forward(request, response);
-                return;
+            switch (pathInfo.toLowerCase()) {
+                case "/delete":
+                    delete(request, response);
+                    return;
+                case "/edit":
+                    edit(request, response);
+                    return;
+                case "/create":
+                    create(request, response);
+                    return;
             }
         }
         List<MealTo> mealTos = mealService.findAll();
@@ -45,16 +42,37 @@ public class MealServlet extends HttpServlet {
         request.getRequestDispatcher("/meals.jsp").forward(request, response);
     }
 
+    private void create(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        log.debug("Forward to create new meal");
+        request.setAttribute("formType", "Create");
+        request.setAttribute("meal", null);
+        request.getRequestDispatcher("/createupdatemeal.jsp").forward(request, response);
+    }
+
+    private void edit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
+        log.debug("Forward to edit meal with id = {}", id);
+        request.setAttribute("formType", "Edit");
+        request.setAttribute("meal", mealService.findById(id));
+        request.getRequestDispatcher("/createupdatemeal.jsp").forward(request, response);
+    }
+
+    private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
+        log.debug("Delete meal with id = {}", id);
+        mealService.deleteById(id);
+        response.sendRedirect(request.getContextPath() + "/meals");
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
         String description = request.getParameter("description");
         int calories = Integer.parseInt(request.getParameter("calories"));
-
         Meal meal = new Meal(dateTime, description, calories);
         String idParam = request.getParameter("id");
-        if (idParam != null) {
+        if (idParam != null && !idParam.equals("")) {
             meal.setId(Long.parseLong(idParam));
         }
         mealService.save(meal);

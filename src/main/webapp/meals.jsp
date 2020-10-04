@@ -4,13 +4,13 @@
 
 <html lang="ru">
 <head>
-    <title>Users</title>
+    <title>Meals</title>
 </head>
 <body>
-<h3><a href="index.html">Home</a></h3>
+<h3><a href="${pageContext.request.contextPath}/index.html">Home</a></h3>
 <hr>
 <h2>Meals</h2>
-<a href="savemeal.jsp">Add Meal</a>
+<a href="${pageContext.request.contextPath}/meals/create">Add Meal</a>
 <style type="text/css">
     TABLE {
         width: 60%;
@@ -41,11 +41,8 @@
 
     <jsp:useBean id="meals" scope="request" type="java.util.List<ru.javawebinar.topjava.model.MealTo>"/>
     <c:forEach var="meal" items="#{meals}">
-        <tr style="color:
-        <c:choose>
-        <c:when test="${meal.excess}"> red</c:when>
-        <c:otherwise>darkgreen</c:otherwise></c:choose>">
-            <td>${f:formatLocalDateTime(meal.dateTime, 'dd.MM.yyyy hh:mm') }</td>
+        <tr style="color: ${meal.excess ? "red" : "darkgreen"}">
+            <td>${f:formatLocalDateTime(meal.dateTime) }</td>
             <td>${meal.description}</td>
             <td>${meal.calories}</td>
             <td><a href="${pageContext.request.contextPath}/meals/edit?id=${meal.id}">edit</a></td>

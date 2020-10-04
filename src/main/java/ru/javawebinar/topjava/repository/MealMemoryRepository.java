@@ -1,30 +1,20 @@
 package ru.javawebinar.topjava.repository;
 
-import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.web.UserServlet;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
 
-import static org.slf4j.LoggerFactory.getLogger;
+public class MealMemoryRepository implements MealRepository {
+    private static final AtomicLong index = new AtomicLong(0);
+    private final Map<Long, Meal> meals = new ConcurrentHashMap<>();
 
-public class LocalRepo implements MealRepository {
-    private static final Logger log = getLogger(UserServlet.class);
-    private static final LocalRepo ourInstance;
-    private static volatile Long index = 0L;
-
-    static {
-        ourInstance = new LocalRepo();
-    }
-
-    private LocalRepo() {
+    public MealMemoryRepository() {
         save(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));
         save(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
         save(new Meal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
@@ -34,20 +24,9 @@ public class LocalRepo implements MealRepository {
         save(new Meal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
     }
 
-    public static LocalRepo getInstance() {
-        return ourInstance;
-    }
-
-    private final ConcurrentMap<Long, Meal> meals = new ConcurrentHashMap<>();
-
     @Override
     public List<Meal> findAll() {
         return new ArrayList<>(meals.values());
-    }
-
-    @Override
-    public List<Meal> findByDate(LocalDate date) {
-        return meals.values().stream().filter(meal -> meal.getDate().equals(date)).collect(Collectors.toList());
     }
 
     @Override
@@ -56,10 +35,10 @@ public class LocalRepo implements MealRepository {
     }
 
     @Override
-    public synchronized Meal save(Meal meal) {
-        if (meal.getId().equals(-1L)) {
-            meal.setId(index);
-            index++;
+    public Meal save(Meal meal) {
+        Long id = meal.getId();
+        if (id == null || !meals.containsKey(id)) {
+            meal.setId(index.getAndAdd(1));
         }
         meals.put(meal.getId(), meal);
         return meal;

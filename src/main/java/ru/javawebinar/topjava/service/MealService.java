@@ -10,8 +10,6 @@ public interface MealService {
 
     MealTo findById(Long id);
 
-    void save(MealTo mealTo);
-
     void save(Meal meal);
 
     void deleteById(Long id);
