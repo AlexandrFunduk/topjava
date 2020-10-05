@@ -40,14 +40,15 @@ public class MealMemoryRepository implements MealRepository {
 
     @Override
     public Meal save(Meal meal) {
-        Long id = meal.getId();
-        if (id == null) {
+        if (meal.getId() == null) {
             meal.setId(index.getAndIncrement());
-        } else if (!meals.containsKey(id)) {
-            log.debug("Not valid id = {} for save meal", id);
-            return null;
+            meals.put(meal.getId(), meal);
+        } else {
+            if (meals.replace(meal.getId(), meal) == null) {
+                log.debug("Not valid id = {} for save meal", meal.getId());
+                return null;
+            }
         }
-        meals.put(meal.getId(), meal);
         return meal;
     }
 
