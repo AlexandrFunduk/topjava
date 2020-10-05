@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.repository;
 
+import org.slf4j.Logger;
 import ru.javawebinar.topjava.model.Meal;
 
 import java.time.LocalDateTime;
@@ -10,8 +11,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class MealMemoryRepository implements MealRepository {
     private static final AtomicLong index = new AtomicLong(0);
+    private static final Logger log = getLogger(MealMemoryRepository.class);
     private final Map<Long, Meal> meals = new ConcurrentHashMap<>();
 
     public MealMemoryRepository() {
@@ -37,8 +41,11 @@ public class MealMemoryRepository implements MealRepository {
     @Override
     public Meal save(Meal meal) {
         Long id = meal.getId();
-        if (id == null || !meals.containsKey(id)) {
-            meal.setId(index.getAndAdd(1));
+        if (id == null) {
+            meal.setId(index.getAndIncrement());
+        } else if (!meals.containsKey(id)) {
+            log.debug("Not valid id = {} for save meal", id);
+            return null;
         }
         meals.put(meal.getId(), meal);
         return meal;

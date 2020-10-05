@@ -50,7 +50,7 @@ public class MealServlet extends HttpServlet {
     }
 
     private void edit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
+        Long id = getIdFromRequestParameter(request);
         log.debug("Forward to edit meal with id = {}", id);
         request.setAttribute("formType", "Edit");
         request.setAttribute("meal", mealService.findById(id));
@@ -58,10 +58,15 @@ public class MealServlet extends HttpServlet {
     }
 
     private void delete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Long id = Long.parseLong(request.getParameterMap().get("id")[0]);
+        Long id = getIdFromRequestParameter(request);
         log.debug("Delete meal with id = {}", id);
         mealService.deleteById(id);
         response.sendRedirect(request.getContextPath() + "/meals");
+    }
+
+    private Long getIdFromRequestParameter(HttpServletRequest request) {
+        String idParam = request.getParameter("id");
+        return idParam == null || idParam.equals("") ? null : Long.parseLong(idParam);
     }
 
     @Override
@@ -71,12 +76,12 @@ public class MealServlet extends HttpServlet {
         String description = request.getParameter("description");
         int calories = Integer.parseInt(request.getParameter("calories"));
         Meal meal = new Meal(dateTime, description, calories);
-        String idParam = request.getParameter("id");
-        if (idParam != null && !idParam.equals("")) {
-            meal.setId(Long.parseLong(idParam));
+        Long id = getIdFromRequestParameter(request);
+        if (id != null) {
+            meal.setId(id);
         }
-        mealService.save(meal);
         log.debug("Save meal. id = {} date = {} description = {} calories = {}", meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories());
+        mealService.save(meal);
         response.sendRedirect(request.getContextPath() + "/meals");
     }
 }
