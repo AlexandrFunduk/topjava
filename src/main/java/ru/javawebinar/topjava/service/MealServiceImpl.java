@@ -18,9 +18,8 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public MealTo findById(Long id) {
-        Meal meal = mealRepository.findById(id);
-        return new MealTo(meal.getId(), meal.getDateTime(), meal.getDescription(), meal.getCalories(), false);
+    public Meal findById(Long id) {
+        return mealRepository.findById(id);
     }
 
     @Override

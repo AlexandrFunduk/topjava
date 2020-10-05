@@ -8,7 +8,7 @@ import java.util.List;
 public interface MealService {
     List<MealTo> findAll();
 
-    MealTo findById(Long id);
+    Meal findById(Long id);
 
     void save(Meal meal);
 
