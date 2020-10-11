@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.util.StringUtils;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.util.DateTimeUtil;
 import ru.javawebinar.topjava.web.meal.MealRestController;
 
 import javax.servlet.ServletConfig;
@@ -98,13 +98,11 @@ public class MealServlet extends HttpServlet {
     }
 
     private LocalDate getDate(HttpServletRequest request, String name) {
-        String startDate = Objects.requireNonNull(request.getParameter(name));
-        return DateTimeUtil.toLocalDate(startDate);
+        return StringUtils.isEmpty(request.getParameter(name)) ? null : LocalDate.parse(request.getParameter(name));
     }
 
     private LocalTime getTime(HttpServletRequest request, String name) {
-        String startTime = Objects.requireNonNull(request.getParameter(name));
-        return DateTimeUtil.toLocalTime(startTime);
+        return StringUtils.isEmpty(request.getParameter(name)) ? null : LocalTime.parse(request.getParameter(name));
     }
 
 

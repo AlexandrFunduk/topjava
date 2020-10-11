@@ -19,7 +19,7 @@ import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
 @Controller
 public class MealRestController {
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(MealRestController.class);
 
     @Autowired
     private MealService service;
@@ -31,11 +31,15 @@ public class MealRestController {
 
     public List<MealTo> getByFilter(LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
         log.info("getByFilter startDate - {}, endDate - {}, startTime - {}, endTime - {}", startDate, endDate, startTime, endTime);
+        final LocalDate startD = startDate == null ? LocalDate.MIN : startDate;
+        final LocalDate endD = endDate == null ? LocalDate.MAX : endDate;
+        final LocalTime startT = startTime == null ? LocalTime.MIN : startTime;
+        final LocalTime endT = endTime == null ? LocalTime.MAX : endTime;
         return service.getByFilter(authUserId(), authUserCaloriesPerDay(), startDate, endDate, startTime, endTime);
     }
 
     public Meal get(int id) {
-        log.info("getAll");
+        log.info("get {}", id);
         return service.get(id, authUserId());
     }
 

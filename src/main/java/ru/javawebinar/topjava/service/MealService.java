@@ -43,13 +43,8 @@ public class MealService {
     }
 
     public List<MealTo> getByFilter(int userId, int caloriesPerDay, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
-        final LocalDate startD = startDate == null ? LocalDate.MIN : startDate;
-        final LocalDate endD = endDate == null ? LocalDate.MAX : endDate.plusDays(1);
-        final LocalTime startT = startTime == null ? LocalTime.MIN : startTime;
-        final LocalTime endT = endTime == null ? LocalTime.MAX : endTime;
-
-        List<Meal> result = repository.getByFilter(userId, startD, endD);
-        return result == null ? Collections.emptyList() : MealsUtil.getFilteredTos(result, caloriesPerDay, startT, endT);
+        List<Meal> result = repository.getByFilter(userId, startDate, endDate);
+        return result == null ? Collections.emptyList() : MealsUtil.getFilteredTos(result, caloriesPerDay, startTime, endTime);
     }
 
 }
