@@ -6,15 +6,15 @@ import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
 @Service
 public class MealService {
-
     private MealRepository repository;
 
     public MealService(MealRepository repository) {
@@ -38,16 +38,18 @@ public class MealService {
     }
 
     public List<MealTo> getAll(int userId, int caloriesPerDay) {
-        List<Meal> result = (List<Meal>) repository.getAll(userId);
-        return getTos(result, caloriesPerDay);
-    }
-
-    public List<MealTo> getByFilter(Predicate<Meal> filter, int userId, int caloriesPerDay) {
-        List<Meal> result = (List<Meal>) repository.getByFilter(userId, filter);
-        return getTos(result, caloriesPerDay);
-    }
-
-    private List<MealTo> getTos(List<Meal> result, int caloriesPerDay) {
+        List<Meal> result = repository.getAll(userId);
         return result == null ? Collections.emptyList() : MealsUtil.getTos(result, caloriesPerDay);
     }
+
+    public List<MealTo> getByFilter(int userId, int caloriesPerDay, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime) {
+        final LocalDate startD = startDate == null ? LocalDate.MIN : startDate;
+        final LocalDate endD = endDate == null ? LocalDate.MAX : endDate.plusDays(1);
+        final LocalTime startT = startTime == null ? LocalTime.MIN : startTime;
+        final LocalTime endT = endTime == null ? LocalTime.MAX : endTime;
+
+        List<Meal> result = repository.getByFilter(userId, startD, endD);
+        return result == null ? Collections.emptyList() : MealsUtil.getFilteredTos(result, caloriesPerDay, startT, endT);
+    }
+
 }

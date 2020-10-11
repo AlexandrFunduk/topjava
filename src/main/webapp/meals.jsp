@@ -34,10 +34,14 @@
             </tr>
             </thead>
             <tr>
-                <td><input type="date" name="startDate"></td>
-                <td><input type="date" name="endDate"></td>
-                <td><input type="time" name="startTime"></td>
-                <td><input type="time" name="endTime"></td>
+                <td><input type="date" name="startDate" value=<c:out
+                        value="${(empty startDate) ? 'Default startDate' : startDate}"/>></td>
+                <td><input type="date" name="endDate" value=<c:out
+                        value="${(empty endDate) ? 'Default startDate' : endDate}"/>></td>
+                <td><input type="time" name="startTime" value=<c:out
+                        value="${(empty startTime) ? 'Default startDate' : startTime}"/>></td>
+                <td><input type="time" name="endTime" value=<c:out
+                        value="${(empty endTime) ? 'Default startDate' : endTime}"/>></td>
             </tr>
             <tr>
                 <td colspan="4" align="right">

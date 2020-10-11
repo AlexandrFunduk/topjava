@@ -22,7 +22,7 @@ import java.util.Objects;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(MealServlet.class);
-    private static final ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml");
+    private final ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml");
     private MealRestController controller;
 
     @Override
@@ -72,7 +72,15 @@ public class MealServlet extends HttpServlet {
                 break;
             case "filter":
                 log.info("Servlet>> getByFilter");
-                request.setAttribute("meals", controller.getByFilter(getStartDate(request), getEndDate(request), getStartTime(request), getEndTime(request)));
+                LocalDate startDate = getDate(request, "startDate");
+                LocalDate endDate = getDate(request, "endDate");
+                LocalTime startTime = getTime(request, "startTime");
+                LocalTime endTime = getTime(request, "endTime");
+                request.setAttribute("meals", controller.getByFilter(startDate, endDate, startTime, endTime));
+                request.setAttribute("startDate", startDate);
+                request.setAttribute("endDate", endDate);
+                request.setAttribute("startTime", startTime);
+                request.setAttribute("endTime", endTime);
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
                 break;
             case "all":
@@ -89,25 +97,16 @@ public class MealServlet extends HttpServlet {
         return Integer.parseInt(paramId);
     }
 
-    private LocalDate getStartDate(HttpServletRequest request) {
-        String startDate = Objects.requireNonNull(request.getParameter("startDate"));
+    private LocalDate getDate(HttpServletRequest request, String name) {
+        String startDate = Objects.requireNonNull(request.getParameter(name));
         return DateTimeUtil.toLocalDate(startDate);
     }
 
-    private LocalTime getStartTime(HttpServletRequest request) {
-        String startTime = Objects.requireNonNull(request.getParameter("startTime"));
+    private LocalTime getTime(HttpServletRequest request, String name) {
+        String startTime = Objects.requireNonNull(request.getParameter(name));
         return DateTimeUtil.toLocalTime(startTime);
     }
 
-    private LocalDate getEndDate(HttpServletRequest request) {
-        String endDate = Objects.requireNonNull(request.getParameter("endDate"));
-        return DateTimeUtil.toLocalDate(endDate);
-    }
-
-    private LocalTime getEndTime(HttpServletRequest request) {
-        String endTime = Objects.requireNonNull(request.getParameter("endTime"));
-        return DateTimeUtil.toLocalTime(endTime);
-    }
 
     @Override
     public void destroy() {
