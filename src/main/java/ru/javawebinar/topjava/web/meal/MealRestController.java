@@ -35,7 +35,7 @@ public class MealRestController {
         final LocalDate endD = endDate == null ? LocalDate.MAX : endDate;
         final LocalTime startT = startTime == null ? LocalTime.MIN : startTime;
         final LocalTime endT = endTime == null ? LocalTime.MAX : endTime;
-        return service.getByFilter(authUserId(), authUserCaloriesPerDay(), startDate, endDate, startTime, endTime);
+        return service.getByFilter(authUserId(), authUserCaloriesPerDay(), startD, endD, startT, endT);
     }
 
     public Meal get(int id) {

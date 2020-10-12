@@ -24,6 +24,7 @@
     <a href="meals?action=create">Add Meal</a>
     <br><br>
     <form method="get" action="meals">
+        <input type="text" name="action" value="filter" style="visibility: hidden">
         <table border="1" cellpadding="8" cellspacing="0">
             <thead>
             <tr>
@@ -34,18 +35,13 @@
             </tr>
             </thead>
             <tr>
-                <td><input type="date" name="startDate" value=
-                        value="${(empty startDate) ? 'Default startDate' : startDate}"></td>
-                <td><input type="date" name="endDate" value=
-                        value="${(empty endDate) ? 'Default startDate' : endDate}"></td>
-                <td><input type="time" name="startTime" value=
-                        value="${(empty startTime) ? 'Default startDate' : startTime}"></td>
-                <td><input type="time" name="endTime" value=
-                        value="${(empty endTime) ? 'Default startDate' : endTime}"></td>
+                <td><input type="date" name="startDate" value=<%=request.getParameter("startDate")%>></td>
+                <td><input type="date" name="endDate" value=<%=request.getParameter("endDate")%>></td>
+                <td><input type="time" name="startTime" value=<%=request.getParameter("startTime")%>></td>
+                <td><input type="time" name="endTime" value=<%=request.getParameter("endTime")%>></td>
             </tr>
             <tr>
                 <td colspan="4" align="right">
-                    <input type="text" name="action" value="filter" style="visibility: hidden">
                     <button type="submit">Фильтровать</button>
                 </td>
             </tr>
