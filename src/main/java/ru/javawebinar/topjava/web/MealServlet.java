@@ -101,7 +101,6 @@ public class MealServlet extends HttpServlet {
         return StringUtils.isEmpty(request.getParameter(name)) ? null : LocalTime.parse(request.getParameter(name));
     }
 
-
     @Override
     public void destroy() {
         appCtx.close();

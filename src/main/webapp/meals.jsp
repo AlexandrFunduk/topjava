@@ -35,10 +35,10 @@
             </tr>
             </thead>
             <tr>
-                <td><input type="date" name="startDate" value=<%=request.getParameter("startDate")%>></td>
-                <td><input type="date" name="endDate" value=<%=request.getParameter("endDate")%>></td>
-                <td><input type="time" name="startTime" value=<%=request.getParameter("startTime")%>></td>
-                <td><input type="time" name="endTime" value=<%=request.getParameter("endTime")%>></td>
+                <td><input type="date" name="startDate" value=${param.startDate}></td>
+                <td><input type="date" name="endDate" value=${param.endDate}></td>
+                <td><input type="time" name="startTime" value=${param.startTime}></td>
+                <td><input type="time" name="endTime" value=${param.endTime}></td>
             </tr>
             <tr>
                 <td colspan="4" align="right">

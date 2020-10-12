@@ -69,7 +69,7 @@ public class InMemoryMealRepository implements MealRepository {
         return filterByPredicate(userId, meal -> isBetweenHalfOpen(meal.getDate(), startDate, endD));
     }
 
-    public List<Meal> filterByPredicate(int userId, Predicate<Meal> filter) {
+    private List<Meal> filterByPredicate(int userId, Predicate<Meal> filter) {
         Map<Integer, Meal> meals = repository.get(userId);
         return meals == null ? Collections.emptyList() : meals.values().stream()
                 .filter(filter)
