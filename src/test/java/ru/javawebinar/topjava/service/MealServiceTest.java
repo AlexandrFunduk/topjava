@@ -41,7 +41,7 @@ public class MealServiceTest {
     @Test
     public void get() throws Exception {
         Meal meal = service.get(MEAL_ID, UserTestData.USER_ID);
-        assertMatch(meal, MealTestData.user_meal);
+        assertMatch(meal, MealTestData.userMeal);
     }
 
     @Test
@@ -70,19 +70,19 @@ public class MealServiceTest {
         List<Meal> all = service.getBetweenInclusive(LocalDate.of(2020, 10, 17),
                 LocalDate.of(2020, 10, 18),
                 UserTestData.USER_ID);
-        assertMatch(all, user_meal2, user_meal);
+        assertMatch(all, userMeal2, userMeal);
     }
 
     @Test
     public void getBetweenInclusiveEmptyFilter() throws Exception {
         List<Meal> all = service.getBetweenInclusive(null, null, UserTestData.USER_ID);
-        assertMatch(all, user_meal2, user_meal);
+        assertMatch(all, userMeal3, userMeal2, userMeal);
     }
 
     @Test
     public void getAll() throws Exception {
         List<Meal> all = service.getAll(UserTestData.USER_ID);
-        assertMatch(all, user_meal2, user_meal);
+        assertMatch(all, userMeal3, userMeal2, userMeal);
     }
 
     @Test
@@ -112,10 +112,8 @@ public class MealServiceTest {
 
     @Test
     public void createWithTheSameDateTime() throws Exception {
-        Meal newMeal = getNew();
-        service.create(newMeal, UserTestData.USER_ID);
-        Meal updated = getUpdated();
-        updated.setDateTime(newMeal.getDateTime());
-        Assert.assertThrows(DuplicateKeyException.class, () -> service.create(updated, UserTestData.USER_ID));
+        Meal meal = getNew();
+        meal.setDateTime(userMeal.getDateTime());
+        Assert.assertThrows(DuplicateKeyException.class, () -> service.create(meal, UserTestData.USER_ID));
     }
 }
