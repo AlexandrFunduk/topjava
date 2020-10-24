@@ -1,7 +1,13 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.test.context.ContextConfiguration;
@@ -13,8 +19,11 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertThrows;
+import static org.slf4j.LoggerFactory.getLogger;
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
@@ -26,9 +35,34 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
+    private static final Logger log = getLogger(MealServiceTest.class);
+
+    private static final List<String> summary = new ArrayList<>();
+
+    private static long time;
 
     @Autowired
     private MealService service;
+
+    @Rule
+    public final TestRule watchman = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            time = System.nanoTime();
+        }
+
+        @Override
+        protected void finished(Description description) {
+            String message = description.getDisplayName() + " run time " + (System.nanoTime() - time) / 1000000.0 + "ms";
+            summary.add(message);
+            log.info(message);
+        }
+    };
+
+    @AfterClass
+    public static void logSummary() {
+        log.info(String.join("\n", summary));
+    }
 
     @Test
     public void delete() throws Exception {
