@@ -3,8 +3,7 @@ package ru.javawebinar.topjava.service;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -21,6 +20,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertThrows;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -39,21 +39,14 @@ public class MealServiceTest {
 
     private static final List<String> summary = new ArrayList<>();
 
-    private static long time;
-
     @Autowired
     private MealService service;
 
     @Rule
-    public final TestRule watchman = new TestWatcher() {
+    public final Stopwatch stopwatch = new Stopwatch() {
         @Override
-        protected void starting(Description description) {
-            time = System.nanoTime();
-        }
-
-        @Override
-        protected void finished(Description description) {
-            String message = description.getDisplayName() + " run time " + (System.nanoTime() - time) / 1000000.0 + "ms";
+        protected void finished(long nanos, Description description) {
+            String message = String.format("%-30s %d ms", description.getMethodName(), nanos / 1000000);
             summary.add(message);
             log.info(message);
         }
@@ -61,7 +54,7 @@ public class MealServiceTest {
 
     @AfterClass
     public static void logSummary() {
-        log.info(String.join("\n", summary));
+        log.info(summary.stream().collect(Collectors.joining("\n", "\n", "\n")));
     }
 
     @Test

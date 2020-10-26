@@ -15,7 +15,6 @@ import java.time.LocalTime;
         @NamedQuery(name = Meal.BETWEEN_HALF_OPEN, query = "SELECT meal FROM Meal meal WHERE meal.user.id=:userId and meal.dateTime>=:startDateTime and meal.dateTime<:endDateTime ORDER BY meal.dateTime DESC"),
         @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal meal WHERE meal.id=:id and meal.user.id=:userId"),
 })
-
 @Entity
 @Table(name = "meals", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "date_time"}, name = "meals_unique_user_datetime_idx")})
 public class Meal extends AbstractBaseEntity {
