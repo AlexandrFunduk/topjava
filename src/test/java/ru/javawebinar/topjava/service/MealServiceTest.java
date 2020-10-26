@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertThrows;
@@ -46,7 +47,7 @@ public class MealServiceTest {
     public final Stopwatch stopwatch = new Stopwatch() {
         @Override
         protected void finished(long nanos, Description description) {
-            String message = String.format("%-30s %d ms", description.getMethodName(), nanos / 1000000);
+            String message = String.format("%-30s %d ms", description.getMethodName(), TimeUnit.NANOSECONDS.toMillis(nanos));
             summary.add(message);
             log.info(message);
         }
