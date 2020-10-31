@@ -6,6 +6,11 @@
 
     <display-name>Topjava</display-name>
 
+    <context-param>
+        <param-name>spring.profiles.active</param-name>
+        <param-value>datajpa, postgres</param-value>
+    </context-param>
+
     <servlet>
         <servlet-name>userServlet</servlet-name>
         <servlet-class>ru.javawebinar.topjava.web.UserServlet</servlet-class>
