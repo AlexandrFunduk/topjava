@@ -34,6 +34,10 @@ public abstract class AbstractJdbcMealRepository implements MealRepository {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
+    public Object convertDate(LocalDateTime dateTime) {
+        return dateTime;
+    }
+
     @Override
     public Meal save(Meal meal, int userId) {
         MapSqlParameterSource map = getMapSqlParameterSource(meal, userId);
@@ -57,7 +61,7 @@ public abstract class AbstractJdbcMealRepository implements MealRepository {
                 .addValue("id", meal.getId())
                 .addValue("description", meal.getDescription())
                 .addValue("calories", meal.getCalories())
-                .addValue("date_time", meal.getDateTime())
+                .addValue("date_time", convertDate(meal.getDateTime()))
                 .addValue("user_id", userId);
     }
 
@@ -83,6 +87,6 @@ public abstract class AbstractJdbcMealRepository implements MealRepository {
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
         return jdbcTemplate.query(
                 "SELECT * FROM meals WHERE user_id=?  AND date_time >=  ? AND date_time < ? ORDER BY date_time DESC",
-                ROW_MAPPER, userId, startDateTime, endDateTime);
+                ROW_MAPPER, userId, convertDate(startDateTime), convertDate(endDateTime));
     }
 }
