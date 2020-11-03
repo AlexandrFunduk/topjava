@@ -34,9 +34,7 @@ public abstract class AbstractJdbcMealRepository implements MealRepository {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
     }
 
-    public Object convertDate(LocalDateTime dateTime) {
-        return dateTime;
-    }
+    public abstract <T> T convertDate(LocalDateTime dateTime);
 
     @Override
     public Meal save(Meal meal, int userId) {
