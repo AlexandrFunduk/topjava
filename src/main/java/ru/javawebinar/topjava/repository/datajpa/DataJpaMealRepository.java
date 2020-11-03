@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.repository.datajpa;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.MealRepository;
@@ -20,6 +21,7 @@ public class DataJpaMealRepository implements MealRepository {
         this.crudRepository = crudRepository;
     }
 
+    @Transactional
     @Override
     public Meal save(Meal meal, int userId) {
         meal.setUser(em.getReference(User.class, userId));
@@ -29,6 +31,7 @@ public class DataJpaMealRepository implements MealRepository {
         return null;
     }
 
+    @Transactional
     @Override
     public boolean delete(int id, int userId) {
         return crudRepository.delete(id, userId) != 0;
@@ -46,7 +49,7 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        return crudRepository.findAllByUserAndDateTimeGreaterThanEqualAndDateTimeLessThanOrderByDateTimeDesc(em.getReference(User.class, userId), startDateTime, endDateTime);
+        return crudRepository.getBetweenHalfOpen(startDateTime, endDateTime, userId);
     }
 
     @Override
