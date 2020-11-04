@@ -18,7 +18,7 @@ public class SpringMain {
         // java 7 automatic resource management (ARM)
 //        try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml", "spring/inmemory.xml")) {
         try (GenericXmlApplicationContext appCtx = new GenericXmlApplicationContext()) {
-            appCtx.getEnvironment().setActiveProfiles("datajpa", "postgres");
+            appCtx.getEnvironment().setActiveProfiles(Profiles.DATAJPA, Profiles.POSTGRES_DB);
             appCtx.load("spring/spring-app.xml", "spring/inmemory.xml");
             appCtx.refresh();
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
