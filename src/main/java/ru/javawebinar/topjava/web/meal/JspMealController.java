@@ -14,10 +14,16 @@ import ru.javawebinar.topjava.web.SecurityUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.Objects;
 
+import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalDate;
+import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalTime;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
+
 @RequestMapping("/meals")
 @Controller
 public class JspMealController {
@@ -25,7 +31,7 @@ public class JspMealController {
     @Autowired
     MealService service;
 
-    @PostMapping("/set")
+    @PostMapping()
     public String setMeal(HttpServletRequest request) throws UnsupportedEncodingException {
         request.setCharacterEncoding("UTF-8");
         Meal meal = new Meal(
@@ -52,13 +58,13 @@ public class JspMealController {
     public String updateMeal(HttpServletRequest request, Model model) {
         Meal meal = service.get(getId(request), authUserId());
         model.addAttribute("meal", meal);
-        request.setAttribute("meal", meal);
-        request.setAttribute("action", "create");
+        model.addAttribute("action", "update");
         return "mealForm";
     }
 
-    @PostMapping("/create")
-    public String createMeal() {
+    @GetMapping("/create")
+    public String createMeal(Model model) {
+        model.addAttribute("action", "create");
         return "mealForm";
     }
 
@@ -68,38 +74,18 @@ public class JspMealController {
         return "meals";
     }
 
-    /*
-        @Override
-        protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-            String action = request.getParameter("action");
+    @GetMapping("/filter")
+    public String filterMeals(HttpServletRequest request, Model model) {
+        LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
+        LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
+        LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
+        LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
 
-            switch (action == null ? "all" : action) {
-                case "delete" -> {
-                    int id = getId(request);
-                    mealController.delete(id);
-                    response.sendRedirect("meals");
-                }
-                case "create", "update" -> {
-                    final Meal meal = "create".equals(action) ?
-                            new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", 1000) :
-                            mealController.get(getId(request));
-                    request.setAttribute("meal", meal);
-                    request.getRequestDispatcher("/mealForm.jsp").forward(request, response);
-                }
-                case "filter" -> {
-                    LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
-                    LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
-                    LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
-                    LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
-                    request.setAttribute("meals", mealController.getBetween(startDate, startTime, endDate, endTime));
-                    request.getRequestDispatcher("/meals.jsp").forward(request, response);
-                }
-                default -> {
-                    request.setAttribute("meals", mealController.getAll());
-                    request.getRequestDispatcher("/meals.jsp").forward(request, response);
-                }
-            }
-        }*/
+        List<Meal> mealsDateFiltered = service.getBetweenInclusive(startDate, endDate, authUserId());
+        model.addAttribute("meals", MealsUtil.getFilteredTos(mealsDateFiltered, SecurityUtil.authUserCaloriesPerDay(), startTime, endTime));
+        return "meals";
+    }
+
     private int getId(HttpServletRequest request) {
         String paramId = Objects.requireNonNull(request.getParameter("id"));
         return Integer.parseInt(paramId);
