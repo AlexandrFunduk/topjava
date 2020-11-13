@@ -18,9 +18,16 @@
                       p:cacheManagerUri="classpath:cache/ehcache.xml"/>
             </property>
         </bean>
+        <bean id="USE_SECOND_LEVEL_CACHE" class="java.lang.Boolean">
+            <constructor-arg name="value" value="true"/>
+        </bean>
     </beans>
     <beans profile="test">
         <bean id="ehCacheManager" class="org.springframework.cache.support.NoOpCacheManager"/>
+
+        <bean id="USE_SECOND_LEVEL_CACHE" class="java.lang.Boolean">
+            <constructor-arg name="value" value="false"/>
+        </bean>
     </beans>
 
 </beans>
