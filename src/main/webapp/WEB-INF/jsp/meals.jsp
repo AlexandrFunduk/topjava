@@ -55,12 +55,12 @@
                 <td>${meal.description}</td>
                 <td>${meal.calories}</td>
                 <td>
-                    <form method="post" action="meals/update?id=${meal.id}">
+                    <form method="post" action="${pageContext.request.contextPath}/meals/update?id=${meal.id}">
                         <button type="submit"><spring:message code="common.update"/></button>
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="meals/delete?id=${meal.id}">
+                    <form method="post" action="${pageContext.request.contextPath}/meals/delete?id=${meal.id}">
                         <button type="submit"><spring:message code="common.delete"/></button>
                     </form>
                 </td>
