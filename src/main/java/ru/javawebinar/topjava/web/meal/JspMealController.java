@@ -1,6 +1,6 @@
 package ru.javawebinar.topjava.web.meal;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -9,80 +9,79 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
-import ru.javawebinar.topjava.util.MealsUtil;
-import ru.javawebinar.topjava.web.SecurityUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalDate;
 import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalTime;
-import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
 @RequestMapping("/meals")
 @Controller
-public class JspMealController {
+public class JspMealController extends AbstractMealController {
 
-    @Autowired
-    MealService service;
+    public JspMealController(MealService service) {
+        super(service, LoggerFactory.getLogger(JspMealController.class));
+    }
 
     @PostMapping()
-    public String setMeal(HttpServletRequest request) throws UnsupportedEncodingException {
+    public String save(HttpServletRequest request) throws UnsupportedEncodingException {
         request.setCharacterEncoding("UTF-8");
         Meal meal = new Meal(
                 LocalDateTime.parse(request.getParameter("dateTime")),
                 request.getParameter("description"),
                 Integer.parseInt(request.getParameter("calories")));
-
         if (!StringUtils.hasText(request.getParameter("id"))) {
-            service.create(meal, authUserId());
+            create(meal);
         } else {
             meal.setId(getId(request));
-            service.update(meal, authUserId());
+            update(meal, meal.id());
         }
         return "redirect:meals";
     }
 
     @PostMapping("/delete")
-    public String deleteMeal(HttpServletRequest request) {
-        service.delete(getId(request), authUserId());
+    public String delete(HttpServletRequest request) {
+        delete(getId(request));
         return "redirect:/meals";
     }
 
-    @PostMapping("/update")
-    public String updateMeal(HttpServletRequest request, Model model) {
-        Meal meal = service.get(getId(request), authUserId());
-        model.addAttribute("meal", meal);
-        model.addAttribute("action", "update");
+    @GetMapping("/update")
+    public String update(HttpServletRequest request, Model model) {
+        model.addAttribute("meal", get(getId(request)));
         return "mealForm";
     }
 
     @GetMapping("/create")
-    public String createMeal(Model model) {
-        model.addAttribute("action", "create");
+    public String create(Model model) {
+        model.addAttribute("meal", new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES), "", 1000));
         return "mealForm";
     }
 
     @GetMapping()
-    public String getMeals(Model model) {
-        model.addAttribute("meals", MealsUtil.getTos(service.getAll(authUserId()), SecurityUtil.authUserCaloriesPerDay()));
+    public String getAll(Model model) {
+        model.addAttribute("meals", getAll());
         return "meals";
     }
 
+    /**
+     * <ol>Filter separately
+     * <li>by date</li>
+     * <li>by time for every date</li>
+     * </ol>
+     */
     @GetMapping("/filter")
-    public String filterMeals(HttpServletRequest request, Model model) {
+    public String getBetween(HttpServletRequest request, Model model) {
         LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
         LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
         LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
         LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
-
-        List<Meal> mealsDateFiltered = service.getBetweenInclusive(startDate, endDate, authUserId());
-        model.addAttribute("meals", MealsUtil.getFilteredTos(mealsDateFiltered, SecurityUtil.authUserCaloriesPerDay(), startTime, endTime));
+        model.addAttribute("meals", getBetween(startDate, startTime, endDate, endTime));
         return "meals";
     }
 

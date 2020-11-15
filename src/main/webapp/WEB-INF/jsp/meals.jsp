@@ -11,7 +11,7 @@
 <section>
     <h3><spring:message code="meal.title"/></h3>
 
-    <form method="get" action="${pageContext.request.contextPath}/meals/filter">
+    <form method="get" action="meals/filter">
         <dl>
             <dt><spring:message code="meal.fromDate"/></dt>
             <dd><input type="date" name="startDate" value="${param.startDate}"></dd>
@@ -55,12 +55,13 @@
                 <td>${meal.description}</td>
                 <td>${meal.calories}</td>
                 <td>
-                    <form method="post" action="${pageContext.request.contextPath}/meals/update?id=${meal.id}">
+                    <form method="get" action="meals/update">
+                        <input type="hidden" name="id" value="${meal.id}">
                         <button type="submit"><spring:message code="common.update"/></button>
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="${pageContext.request.contextPath}/meals/delete?id=${meal.id}">
+                    <form method="post" action="meals/delete?id=${meal.id}">
                         <button type="submit"><spring:message code="common.delete"/></button>
                     </form>
                 </td>

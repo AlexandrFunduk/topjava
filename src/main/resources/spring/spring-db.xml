@@ -67,11 +67,9 @@
             <constructor-arg ref="jdbcTemplate"/>
         </bean>
 
-        <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
             <property name="dataSource" ref="dataSource"/>
         </bean>
-        <tx:annotation-driven transaction-manager="txManager"/>
-        <tx:annotation-driven proxy-target-class="true"/>
     </beans>
 
     <beans profile="jpa,datajpa">
@@ -93,7 +91,8 @@
                            value="org.hibernate.cache.jcache.internal.JCacheRegionFactory"/>
                     <entry key="#{T(org.hibernate.cache.jcache.ConfigSettings).PROVIDER}"
                            value="org.ehcache.jsr107.EhcacheCachingProvider"/>
-                    <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_SECOND_LEVEL_CACHE}" value="#{USE_SECOND_LEVEL_CACHE}"/>
+                    <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_SECOND_LEVEL_CACHE}"
+                           value="#{USE_SECOND_LEVEL_CACHE}"/>
                     <entry key="#{T(org.hibernate.cfg.AvailableSettings).USE_QUERY_CACHE}"
                            value="false"/> <!--default-->
                     <!--

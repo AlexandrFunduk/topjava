@@ -15,7 +15,6 @@ import ru.javawebinar.topjava.repository.UserRepository;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -85,12 +84,12 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     @Transactional
-    public boolean delete(@Positive int id) {
+    public boolean delete(int id) {
         return jdbcTemplate.update("DELETE FROM users WHERE id=?", id) != 0;
     }
 
     @Override
-    public User get(@Positive int id) {
+    public User get(int id) {
         User user = jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id WHERE id=?",
                 userExtractor,
                 id);

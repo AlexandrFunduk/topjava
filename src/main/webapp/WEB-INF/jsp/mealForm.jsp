@@ -9,8 +9,8 @@
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
     <hr>
-    <h2><spring:message code="${action == 'create' ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
-    <form method="post" action="${pageContext.request.contextPath}/meals">
+    <h2><spring:message code="${empty meal.id ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
+    <form method="post" action="meals">
         <input type="hidden" name="id" value="${meal.id}">
         <dl>
             <dt><spring:message code="common.dateTime"/>:</dt>
