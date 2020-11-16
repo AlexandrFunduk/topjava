@@ -16,7 +16,7 @@ import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
 
 public abstract class AbstractMealController {
-    private Logger log;
+    private final Logger log;
 
     protected final MealService service;
 

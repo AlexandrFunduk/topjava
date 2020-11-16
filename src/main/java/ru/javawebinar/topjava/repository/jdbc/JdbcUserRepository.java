@@ -1,9 +1,11 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -16,8 +18,9 @@ import ru.javawebinar.topjava.repository.UserRepository;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
 
 @Transactional(readOnly = true)
 @Repository
@@ -28,12 +31,6 @@ public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final SimpleJdbcInsert insertUser;
-
-    @Autowired
-    private UserExtractor userExtractor;
-
-    @Autowired
-    private UsersExtractor usersExtractor;
 
     @Autowired
     public JdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
@@ -58,28 +55,34 @@ public class JdbcUserRepository implements UserRepository {
                    registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id
                 """, parameterSource) == 0) {
             return null;
+        } else {
+            deleteRoles(user.id());
         }
-        saveRole(user);
+        Set<Role> roles = user.getRoles();
+        if (roles != null) {
+            saveRoles(List.copyOf(roles), user.id());
+        }
         return user;
     }
 
-    private void saveRole(@NotNull User user) {
-        jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.id());
-        jdbcTemplate.batchUpdate("INSERT INTO user_roles (role, user_id) VALUES (?, ?)",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        for (Role role : user.getRoles()) {
-                            ps.setString(1, role.name());
-                            ps.setInt(2, user.id());
-                        }
-                    }
 
-                    @Override
-                    public int getBatchSize() {
-                        return user.getRoles().size();
-                    }
-                });
+    private void deleteRoles(int id) {
+        jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", id);
+    }
+
+    private void saveRoles(final List<Role> roles, int id) {
+        jdbcTemplate.batchUpdate("INSERT INTO user_roles (role, user_id) VALUES (?, ?)", new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setString(1, roles.get(i).name());
+                ps.setInt(2, id);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return roles.size();
+            }
+        });
     }
 
     @Override
@@ -90,17 +93,17 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public User get(int id) {
-        User user = jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id WHERE id=?",
-                userExtractor,
+        List<User> users = jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id WHERE id=?",
+                new UsersExtractor(),
                 id);
 
-        return user;
+        return DataAccessUtils.singleResult(users);
     }
 
     @Override
     public User getByEmail(@Email String email) {
         List<User> users = jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id WHERE email=?",
-                usersExtractor,
+                new UsersExtractor(),
                 email);
         return DataAccessUtils.singleResult(users);
     }
@@ -108,6 +111,43 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public List<User> getAll() {
         return jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id ORDER BY name, email",
-                usersExtractor);
+                new UsersExtractor());
     }
+
+    private static class UsersExtractor implements ResultSetExtractor<List<User>> {
+        @Override
+        public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            Map<Integer, User> users = new LinkedHashMap<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                User user = users.get(id);
+                if (user == null) {
+                    user = new User();
+                    user.setId(id);
+                    user.setName(rs.getString("name"));
+                    user.setPassword(rs.getString("password"));
+                    user.setEmail(rs.getString("email"));
+                    user.setEnabled(rs.getBoolean("enabled"));
+                    user.setRegistered(rs.getDate("registered"));
+                    user.setCaloriesPerDay(rs.getInt("calories_per_day"));
+                    user.setRoles(new HashSet<>());
+                    addRole(rs, user);
+                    users.put(id, user);
+                } else {
+                    addRole(rs, user);
+                }
+            }
+            return new ArrayList<>(users.values());
+        }
+
+        public static void addRole(ResultSet rs, User user) throws SQLException {
+            String role = rs.getString("role");
+            if (role != null) {
+                Set<Role> roles = user.getRoles();
+                roles.add(Role.valueOf(role));
+                user.setRoles(roles);
+            }
+        }
+    }
+
 }

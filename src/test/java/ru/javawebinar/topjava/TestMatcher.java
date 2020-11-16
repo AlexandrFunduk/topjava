@@ -26,4 +26,8 @@ public class TestMatcher<T> {
     public void assertMatch(Iterable<T> actual, Iterable<T> expected) {
         assertThat(actual).usingElementComparatorIgnoringFields(fieldsToIgnore).isEqualTo(expected);
     }
+
+    public void assertMatchIgnoreOrder(Iterable<T> actual, Iterable<T> expected) {
+        assertThat(actual).containsExactlyInAnyOrderElementsOf(expected);
+    }
 }

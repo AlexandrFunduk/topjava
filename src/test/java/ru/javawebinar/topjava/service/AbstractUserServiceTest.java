@@ -10,13 +10,13 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.validation.ConstraintViolationException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.UserTestData.*;
-import static ru.javawebinar.topjava.UserTestData.user;
 
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
@@ -37,13 +37,13 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Test
     public void duplicateMailCreate() {
         assertThrows(DataAccessException.class, () ->
-                service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.USER)));
+                service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.USER, Role.ADMIN)));
     }
 
     @Test
     public void delete() {
-        service.delete(USER_ID);
-        assertThrows(NotFoundException.class, () -> service.get(USER_ID));
+        service.delete(ADMIN_ID);
+        assertThrows(NotFoundException.class, () -> service.get(ADMIN_ID));
     }
 
     @Test
@@ -89,5 +89,43 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 9, true, new Date(), Set.of())), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "password", 10001, true, new Date(), Set.of())), ConstraintViolationException.class);
+    }
+
+    @Test
+    public void setNullRoles() {
+        User user = admin;
+        user.setRoles(null);
+        service.update(admin);
+        USER_MATCHER.assertMatch(service.get(ADMIN_ID), user);
+    }
+
+    @Test
+    public void setEmptyRoles() {
+        User user = admin;
+        user.setRoles(Collections.emptySet());
+        service.update(admin);
+        USER_MATCHER.assertMatch(service.get(ADMIN_ID), user);
+    }
+
+    @Test
+    public void createUserWithEmptyRole() {
+        User user = getNew();
+        user.setRoles(Collections.emptySet());
+        User created = service.create(user);
+        user = getNew();
+        user.setId(created.getId());
+        user.setRoles(Collections.emptySet());
+        USER_MATCHER.assertMatch(created, user);
+    }
+
+    @Test
+    public void createUserWithSomeRole() {
+        User user = getNew();
+        user.setRoles(Set.of(Role.ADMIN, Role.USER));
+        User created = service.create(user);
+        user = getNew();
+        user.setId(created.getId());
+        user.setRoles(Set.of(Role.ADMIN, Role.USER));
+        USER_MATCHER.assertMatch(created, user);
     }
 }
