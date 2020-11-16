@@ -57,7 +57,7 @@ public class ValidationUtil {
         return result;
     }
 
-    public static <T> void validate(T bean) throws ConstraintViolationException {
+    public static <T> void validateBean(T bean) throws ConstraintViolationException {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         Validator validator = validatorFactory.getValidator();
         Set<ConstraintViolation<T>> violations = validator.validate(bean);
@@ -66,4 +66,12 @@ public class ValidationUtil {
         }
     }
 
+    public static <T> void validateProperty(T bean, String property) throws ConstraintViolationException {
+        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+        Validator validator = validatorFactory.getValidator();
+        Set<ConstraintViolation<T>> violations = validator.validateProperty(bean, property);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(new HashSet<ConstraintViolation<?>>(violations));
+        }
+    }
 }

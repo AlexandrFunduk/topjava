@@ -47,7 +47,7 @@ public class JdbcUserRepository implements UserRepository {
     @Transactional
     public User save(@NotNull User user) {
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
-        ValidationUtil.validate(user);
+        ValidationUtil.validateBean(user);
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
             user.setId(newKey.intValue());
