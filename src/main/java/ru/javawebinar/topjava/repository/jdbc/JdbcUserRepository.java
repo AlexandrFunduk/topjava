@@ -6,6 +6,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -60,7 +61,7 @@ public class JdbcUserRepository implements UserRepository {
             deleteRoles(user.id());
         }
         Set<Role> roles = user.getRoles();
-        if (roles != null && !roles.isEmpty()) {
+        if (!roles.isEmpty()) {
             saveRoles(List.copyOf(roles), user.id());
         }
         return user;
@@ -119,36 +120,36 @@ public class JdbcUserRepository implements UserRepository {
         @Override
         public List<User> extractData(ResultSet rs) throws SQLException, DataAccessException {
             Map<Integer, User> users = new LinkedHashMap<>();
+            int rowNum = 0;
+            UserRowMapper rowMapper = new UserRowMapper();
             while (rs.next()) {
                 int id = rs.getInt("id");
                 User user = users.get(id);
                 if (user == null) {
-                    user = new User();
-                    user.setId(id);
-                    user.setName(rs.getString("name"));
-                    user.setPassword(rs.getString("password"));
-                    user.setEmail(rs.getString("email"));
-                    user.setEnabled(rs.getBoolean("enabled"));
-                    user.setRegistered(rs.getDate("registered"));
-                    user.setCaloriesPerDay(rs.getInt("calories_per_day"));
-                    user.setRoles(new HashSet<>());
-                    addRole(rs, user);
+                    user = rowMapper.mapRow(rs, rowNum);
                     users.put(id, user);
-                } else {
-                    addRole(rs, user);
+                }
+                String role = rs.getString("role");
+                if (role != null) {
+                    Set<Role> roles = user.getRoles();
+                    roles.add(Role.valueOf(role));
+                    user.setRoles(roles);
                 }
             }
             return new ArrayList<>(users.values());
         }
-
-        public static void addRole(ResultSet rs, User user) throws SQLException {
-            String role = rs.getString("role");
-            if (role != null) {
-                Set<Role> roles = user.getRoles();
-                roles.add(Role.valueOf(role));
-                user.setRoles(roles);
-            }
+    }
+    private static class UserRowMapper implements RowMapper<User> {
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+           return new User(rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getString("email"),
+                    rs.getString("password"),
+                    rs.getInt("calories_per_day"),
+                    rs.getBoolean("enabled"),
+                    rs.getDate("registered"),
+                    EnumSet.noneOf(Role.class));
         }
     }
-
 }

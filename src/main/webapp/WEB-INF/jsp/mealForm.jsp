@@ -9,7 +9,7 @@
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <section>
     <hr>
-    <h2><spring:message code="${empty meal.id ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
+    <h2><spring:message code="${meal.isNew() ? 'meal.addMeal' : 'meal.editMeal'}"/></h2>
     <form method="post" action="meals">
         <input type="hidden" name="id" value="${meal.id}">
         <dl>

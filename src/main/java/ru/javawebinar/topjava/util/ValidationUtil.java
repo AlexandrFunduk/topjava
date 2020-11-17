@@ -3,11 +3,15 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.AbstractBaseEntity;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import javax.validation.*;
-import java.util.HashSet;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.util.Set;
 
 public class ValidationUtil {
+    private static Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     private ValidationUtil() {
     }
 
@@ -58,20 +62,16 @@ public class ValidationUtil {
     }
 
     public static <T> void validateBean(T bean) throws ConstraintViolationException {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
         Set<ConstraintViolation<T>> violations = validator.validate(bean);
         if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(new HashSet<ConstraintViolation<?>>(violations));
+            throw new ConstraintViolationException(violations);
         }
     }
 
     public static <T> void validateProperty(T bean, String property) throws ConstraintViolationException {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
         Set<ConstraintViolation<T>> violations = validator.validateProperty(bean, property);
         if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(new HashSet<ConstraintViolation<?>>(violations));
+            throw new ConstraintViolationException(violations);
         }
     }
 }

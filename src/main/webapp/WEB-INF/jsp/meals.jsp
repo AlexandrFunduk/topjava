@@ -55,10 +55,7 @@
                 <td>${meal.description}</td>
                 <td>${meal.calories}</td>
                 <td>
-                    <form method="get" action="meals/update">
-                        <input type="hidden" name="id" value="${meal.id}">
-                        <button type="submit"><spring:message code="common.update"/></button>
-                    </form>
+                    <a href="meals/update?id=${meal.id}"><spring:message code="common.update"/></a>
                 </td>
                 <td>
                     <form method="post" action="meals/delete?id=${meal.id}">

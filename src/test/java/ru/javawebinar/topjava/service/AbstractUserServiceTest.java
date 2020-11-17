@@ -1,9 +1,7 @@
 package ru.javawebinar.topjava.service;
 
 import org.assertj.core.api.Assertions;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import ru.javawebinar.topjava.model.Role;
@@ -19,14 +17,13 @@ import java.util.Set;
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.UserTestData.*;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Autowired
     protected UserService service;
 
     @Test
-    public void testA_update() {
+    public void update() {
         User updated = getUpdated();
         service.update(updated);
         USER_MATCHER.assertMatch(service.get(USER_ID), getUpdated());
@@ -34,13 +31,13 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testB_getAll() {
+    public void getAll() {
         List<User> all = service.getAll();
         USER_MATCHER.assertMatch(all, admin, user);
     }
 
     @Test
-    public void testC_create() {
+    public void create() {
         User created = service.create(getNew());
         int newId = created.id();
         User newUser = getNew();
@@ -50,41 +47,41 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testD_duplicateMailCreate() {
+    public void duplicateMailCreate() {
         assertThrows(DataAccessException.class, () ->
                 service.create(new User(null, "Duplicate", "user@yandex.ru", "newPass", Role.USER, Role.ADMIN)));
     }
 
     @Test
-    public void testE_get() {
+    public void get() {
         User user = service.get(ADMIN_ID);
         USER_MATCHER.assertMatch(user, admin);
     }
 
     @Test
-    public void testF_getNotFound() {
+    public void getNotFound() {
         assertThrows(NotFoundException.class, () -> service.get(NOT_FOUND));
     }
 
     @Test
-    public void testG_getByEmail() {
+    public void getByEmail() {
         User user = service.getByEmail("admin@gmail.com");
         USER_MATCHER.assertMatch(user, admin);
     }
 
     @Test
-    public void testH_delete() {
+    public void delete() {
         service.delete(ADMIN_ID);
         assertThrows(NotFoundException.class, () -> service.get(ADMIN_ID));
     }
 
     @Test
-    public void testI_deletedNotFound() {
+    public void deletedNotFound() {
         assertThrows(NotFoundException.class, () -> service.delete(NOT_FOUND));
     }
 
     @Test
-    public void testJ_createWithException() {
+    public void createWithException() {
         validateRootCause(() -> service.create(new User(null, "  ", "mail@yandex.ru", "password", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "  ", "password", Role.USER)), ConstraintViolationException.class);
         validateRootCause(() -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)), ConstraintViolationException.class);
@@ -93,7 +90,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testK_setNullRoles() {
+    public void setNullRoles() {
         User user = new User(admin);
         user.setRoles(null);
         service.update(user);
@@ -103,7 +100,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testL_setEmptyRoles() {
+    public void setEmptyRoles() {
         User user = new User(admin);
         user.setRoles(Collections.emptySet());
         service.update(user);
@@ -113,7 +110,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testM_createUserWithEmptyRole() {
+    public void createUserWithEmptyRole() {
         User user = getNew();
         user.setRoles(Collections.emptySet());
         User created = service.create(user);
@@ -124,7 +121,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testN_createUserWithSomeRole() {
+    public void createUserWithSomeRole() {
         User user = getNew();
         user.setRoles(Set.of(Role.ADMIN, Role.USER));
         User created = service.create(user);
