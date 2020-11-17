@@ -15,10 +15,10 @@ import static ru.javawebinar.topjava.UserTestData.USER_MATCHER;
 @ActiveProfiles({DATAJPA})
 public class DataJpaUserServiceTest extends AbstractUserServiceTest {
     @Test
-    public void getWithMeals() { //todo запрос еды
+    public void getWithMeals() {
         User user = service.getWithMeals(ADMIN_ID);
         USER_MATCHER.assertMatch(user, user);
-        MealTestData.MEAL_MATCHER.assertMatchIgnoreOrder(user.getMeals(), MealTestData.mealsAdmin);
+        MealTestData.MEAL_MATCHER.assertMatch(user.getMeals(), MealTestData.mealsAdmin);
     }
 
     @Test
