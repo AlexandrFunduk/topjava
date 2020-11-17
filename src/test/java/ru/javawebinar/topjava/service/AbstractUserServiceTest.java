@@ -39,17 +39,6 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void delete() {
-        service.delete(ADMIN_ID);
-        assertThrows(NotFoundException.class, () -> service.get(ADMIN_ID));
-    }
-
-    @Test
-    public void deletedNotFound() {
-        assertThrows(NotFoundException.class, () -> service.delete(NOT_FOUND));
-    }
-
-    @Test
     public void get() {
         User user = service.get(ADMIN_ID);
         USER_MATCHER.assertMatch(user, admin);
@@ -67,17 +56,31 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void getAll() {
+        List<User> all = service.getAll();
+        USER_MATCHER.assertMatch(all, admin, user);
+    }
+
+
+    @Test
+    public void delete() {
+        service.delete(ADMIN_ID);
+        assertThrows(NotFoundException.class, () -> service.get(ADMIN_ID));
+    }
+
+    @Test
+    public void deletedNotFound() {
+        assertThrows(NotFoundException.class, () -> service.delete(NOT_FOUND));
+    }
+
+
+    @Test
     public void update() {
         User updated = getUpdated();
         service.update(updated);
         USER_MATCHER.assertMatch(service.get(USER_ID), getUpdated());
     }
 
-    @Test
-    public void getAll() {
-        List<User> all = service.getAll();
-        USER_MATCHER.assertMatch(all, admin, user);
-    }
 
     @Test
     public void createWithException() {
@@ -90,17 +93,17 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Test
     public void setNullRoles() {
-        User user = admin;
+        User user = new User(admin);
         user.setRoles(null);
-        service.update(admin);
+        service.update(user);
         USER_MATCHER.assertMatch(service.get(ADMIN_ID), user);
     }
 
     @Test
     public void setEmptyRoles() {
-        User user = admin;
+        User user = new User(admin);
         user.setRoles(Collections.emptySet());
-        service.update(admin);
+        service.update(user);
         USER_MATCHER.assertMatch(service.get(ADMIN_ID), user);
     }
 
