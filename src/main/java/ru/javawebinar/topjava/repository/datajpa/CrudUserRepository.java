@@ -17,7 +17,8 @@ public interface CrudUserRepository extends JpaRepository<User, Integer> {
 
     User getByEmail(String email);
 
-    @EntityGraph(attributePaths = {"meals", "roles"})
+    //    https://stackoverflow.com/questions/29602386/how-does-the-fetchmode-work-in-spring-data-jpa
+    @EntityGraph(value = "User.detail", type = EntityGraph.EntityGraphType.LOAD)
     @Query("SELECT u FROM User u WHERE u.id=?1")
     User getWithMeals(int id);
 }

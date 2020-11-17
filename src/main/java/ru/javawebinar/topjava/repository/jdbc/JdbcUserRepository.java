@@ -59,13 +59,12 @@ public class JdbcUserRepository implements UserRepository {
         } else {
             deleteRoles(user.id());
         }
-        List<Role> roles = List.copyOf(user.getRoles());
-        if (roles != null) {
-            saveRoles(roles, user.id());
+        Set<Role> roles = user.getRoles();
+        if (roles != null && !roles.isEmpty()) {
+            saveRoles(List.copyOf(roles), user.id());
         }
         return user;
     }
-
 
     private void deleteRoles(int id) {
         jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", id);
@@ -114,6 +113,7 @@ public class JdbcUserRepository implements UserRepository {
         return jdbcTemplate.query("SELECT * FROM users LEFT JOIN user_roles ur on users.id = ur.user_id ORDER BY name, email",
                 new UsersExtractor());
     }
+
     // https://stackoverflow.com/questions/16461735/jdbc-template-one-to-many
     private static class UsersExtractor implements ResultSetExtractor<List<User>> {
         @Override
