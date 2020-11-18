@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
@@ -61,7 +62,7 @@ public class JdbcUserRepository implements UserRepository {
             deleteRoles(user.id());
         }
         Set<Role> roles = user.getRoles();
-        if (!roles.isEmpty()) {
+        if (!CollectionUtils.isEmpty(roles)) {
             saveRoles(List.copyOf(roles), user.id());
         }
         return user;
