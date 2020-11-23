@@ -14,7 +14,6 @@ public final class DateFormatter implements Formatter<LocalDate> {
 
     @Override
     public LocalDate parse(String date, Locale locale) throws ParseException {
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> parse DateFormatter");
         if (date.length() == 0) {
             return null;
         }
@@ -23,7 +22,6 @@ public final class DateFormatter implements Formatter<LocalDate> {
 
     @Override
     public String print(LocalDate date, Locale locale) {
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> print DateFormatter");
         return date.format(DateTimeFormatter.ISO_DATE);
     }
 }

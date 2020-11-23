@@ -13,7 +13,6 @@ public class TimeFormatter implements Formatter<LocalTime> {
 
     @Override
     public LocalTime parse(String time, Locale locale) throws ParseException {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         if (StringUtils.hasText(time)) {
             return LocalTime.parse(time);
         }
@@ -22,7 +21,6 @@ public class TimeFormatter implements Formatter<LocalTime> {
 
     @Override
     public String print(LocalTime time, Locale locale) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         return time.format(DateTimeFormatter.ISO_TIME);
     }
 }
