@@ -2,10 +2,12 @@ package ru.javawebinar.topjava.web.meal;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -14,7 +16,6 @@ import java.util.List;
 @RequestMapping(value = MealRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class MealRestController extends AbstractMealController {
     static final String REST_URL = "/rest/meals";
-
 
     @Override
     @GetMapping("/{id}")
@@ -35,10 +36,12 @@ public class MealRestController extends AbstractMealController {
         return super.getAll();
     }
 
-    @Override
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Meal create(@RequestBody Meal meal) {
-        return super.create(meal);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<String> restCreate(@RequestBody Meal meal) {
+        create(meal);
+        return ResponseEntity.created(URI.create("/rest/meals/" + meal.getId()))
+                .build();
     }
 
     @Override
@@ -48,6 +51,7 @@ public class MealRestController extends AbstractMealController {
         super.update(meal, id);
     }
 
+    @Override
     @GetMapping("/filter")
     public List<MealTo> getBetween(@RequestParam(required = false) LocalDate startDate,
                                    @RequestParam(required = false) LocalTime startTime,
