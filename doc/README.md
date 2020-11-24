@@ -76,6 +76,8 @@ The REST API to the example app is described below.
     Date: Mon, 23 Nov 2020 16:37:48 GMT
     Keep-Alive: timeout=20
     Connection: keep-alive
+    
+    {"id":100012,"dateTime":"2020-12-30T13:10:00","description":"Обед 2","calories":1100,"user":null}
 
 ## Filter meals
 Request parameters is optional

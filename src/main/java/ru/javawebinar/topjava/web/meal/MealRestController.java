@@ -2,12 +2,11 @@ package ru.javawebinar.topjava.web.meal;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 
-import java.net.URI;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -38,10 +37,10 @@ public class MealRestController extends AbstractMealController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<String> restCreate(@RequestBody Meal meal) {
-        create(meal);
-        return ResponseEntity.created(URI.create("/rest/meals/" + meal.getId()))
-                .build();
+    public Meal create(@RequestBody Meal meal, HttpServletResponse response) {
+        Meal result = super.create(meal);
+        response.setHeader("Location","/rest/meals/" + meal.getId());
+        return result;
     }
 
     @Override
