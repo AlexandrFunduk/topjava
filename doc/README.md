@@ -71,7 +71,7 @@ The REST API to the example app is described below.
 ### Response
 
     HTTP/1.1 201 
-    Location: /rest/meals/100011
+    Location: http://localhost:8080/topjava/rest/meals/100011
     Content-Length: 0
     Date: Mon, 23 Nov 2020 16:37:48 GMT
     Keep-Alive: timeout=20

@@ -2,11 +2,13 @@ package ru.javawebinar.topjava.web.meal;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -35,12 +37,14 @@ public class MealRestController extends AbstractMealController {
         return super.getAll();
     }
 
+    //    https://stackoverflow.com/questions/53064904/how-to-get-absolute-webserver-path-in-a-spring-restcontroller?rq=1
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Meal create(@RequestBody Meal meal, HttpServletResponse response) {
+    public ResponseEntity<Meal> create(@RequestBody Meal meal, HttpServletRequest req) {
         Meal result = super.create(meal);
-        response.setHeader("Location","/rest/meals/" + meal.getId());
-        return result;
+        return ResponseEntity.created(URI.create(req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort() + req.getRequestURI() + result.getId()))
+                .body(result);
+
     }
 
     @Override
