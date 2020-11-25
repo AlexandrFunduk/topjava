@@ -15,7 +15,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import ru.javawebinar.topjava.AllActiveProfileResolver;
 import ru.javawebinar.topjava.MealTestData;
-import ru.javawebinar.topjava.TestMatcher;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
@@ -37,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @ActiveProfiles(resolver = AllActiveProfileResolver.class)
 class MealRestControllerTest {
-    public static final TestMatcher<MealTo> MEALTO_MATCHER = TestMatcher.usingIgnoringFieldsComparator(MealTo.class, "user");
     private static final CharacterEncodingFilter CHARACTER_ENCODING_FILTER = new CharacterEncodingFilter();
 
     static {
@@ -83,7 +81,7 @@ class MealRestControllerTest {
         perform(MockMvcRequestBuilders.get("/rest/meals"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MEALTO_MATCHER.contentJson(expectedValue));
+                .andExpect(MealTestData.MEALTO_MATCHER.contentJson(expectedValue));
     }
 
     @Test
@@ -116,12 +114,11 @@ class MealRestControllerTest {
 
     @Test
     void getBetween() throws Exception {
-        List<Meal> mealsFor30Jan = Arrays.asList(MealTestData.meal3, MealTestData.meal2, MealTestData.meal1);
-        List<MealTo> expectedValue = MealsUtil.getFilteredTos(mealsFor30Jan, SecurityUtil.authUserCaloriesPerDay(), null, LocalTime.of(22, 0));
-        perform(MockMvcRequestBuilders.get("/rest/meals//filter?endDate=2020-01-30&endTime=22:00"))
+        List<Meal> mealsFor31Jan = Arrays.asList(MealTestData.meal7, MealTestData.meal6, MealTestData.meal5, MealTestData.meal4);
+        List<MealTo> expectedValue = MealsUtil.getFilteredTos(mealsFor31Jan, SecurityUtil.authUserCaloriesPerDay(), LocalTime.of(11, 0), LocalTime.of(22, 0));
+        perform(MockMvcRequestBuilders.get("/rest/meals//filter?startDate=2020-01-31&endDate=2020-01-31&startTime=11:00&endTime=22:00"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(MEALTO_MATCHER.contentJson(expectedValue));
-
+                .andExpect(MealTestData.MEALTO_MATCHER.contentJson(expectedValue));
     }
 }
