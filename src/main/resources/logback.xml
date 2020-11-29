@@ -22,11 +22,12 @@
     </appender>
 
     <logger name="ru.javawebinar.topjava" level="debug"/>
-    <!--<logger name="org.springframework.web.servlet" level="debug"/>-->
+    <logger name="org.springframework.web.servlet" level="debug"/>
     <logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" level="debug"/>
+    <logger name="org.springframework.web" level="debug"/>
     <logger name="org.springframework.security" level="debug"/>
 
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="file"/>
         <appender-ref ref="console"/>
     </root>

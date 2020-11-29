@@ -1,28 +1,23 @@
 var ctx;
+var filterOn = false;
 
 // $(document).ready(function () {
 $(function () {
     // https://stackoverflow.com/a/5064235/548473
     ctx = {
-        ajaxUrl: "admin/users/",
+        ajaxUrl: "meals/",
         datatableApi: $("#datatable").DataTable({
             "paging": false,
             "info": true,
             "columns": [
                 {
-                    "data": "name"
+                    "data": "dateTime"
                 },
                 {
-                    "data": "email"
+                    "data": "description"
                 },
                 {
-                    "data": "roles"
-                },
-                {
-                    "data": "enabled"
-                },
-                {
-                    "data": "registered"
+                    "data": "calories"
                 },
                 {
                     "defaultContent": "Edit",
@@ -44,8 +39,32 @@ $(function () {
     makeEditable();
 });
 
+function filter() {
+    $.ajax({
+        url: ctx.ajaxUrl + "filter",
+        data: $('#filterForm').serialize(),
+        type: "Get"
+    }).done(updateTableByData);
+    filterOn = true;
+}
+
+function clearFilter() {
+    filterOn = false;
+    form = $('#filterForm');
+    form.find(":input").val("");
+    updateTable()
+}
+
 function updateTable() {
-    $.get(ctx.ajaxUrl, function (data) {
-        ctx.datatableApi.clear().rows.add(data).draw();
-    });
+    if (filterOn) {
+        filter()
+    } else {
+        $.get(ctx.ajaxUrl, function (data) {
+            ctx.datatableApi.clear().rows.add(data).draw();
+        });
+    }
+}
+
+function updateTableByData(data) {
+    ctx.datatableApi.clear().rows.add(data).draw();
 }
