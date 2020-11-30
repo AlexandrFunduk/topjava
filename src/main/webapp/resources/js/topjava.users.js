@@ -49,3 +49,18 @@ function updateTable() {
         ctx.datatableApi.clear().rows.add(data).draw();
     });
 }
+
+function enable(cb) {
+    var enabled = cb.is(":checked");
+    $.ajax({
+        url: ctx.ajaxUrl + cb.closest("tr").attr("id"),
+        type: "POST",
+        data: "enabled=" + enabled
+    }).done(function () {
+        // updateTable();
+        cb.closest("tr").attr("data-userEnabled", enabled);
+        successNoty(enabled ? "common.enabled" : "common.disabled");
+    }).fail(function () {
+        $(cb).prop("checked", !enabled);
+    });
+}
