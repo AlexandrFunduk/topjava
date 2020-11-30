@@ -4,7 +4,7 @@ var ctx;
 $(function () {
     // https://stackoverflow.com/a/5064235/548473
     ctx = {
-        ajaxUrl: "admin/users/",
+        ajaxUrl: "admin/users",
         datatableApi: $("#datatable").DataTable({
             "paging": false,
             "info": true,
@@ -46,20 +46,20 @@ $(function () {
 
 function updateTable() {
     $.get(ctx.ajaxUrl, function (data) {
-        ctx.datatableApi.clear().rows.add(data).draw();
+        updateTableByData(data);
     });
 }
 
-function enable(cb) {
+function enable(cb, id) {
     var enabled = cb.is(":checked");
     $.ajax({
-        url: ctx.ajaxUrl + cb.closest("tr").attr("id"),
+        url: ctx.ajaxUrl + "/" + id,
         type: "POST",
         data: "enabled=" + enabled
     }).done(function () {
         // updateTable();
         cb.closest("tr").attr("data-userEnabled", enabled);
-        successNoty(enabled ? "common.enabled" : "common.disabled");
+        successNoty(enabled ? "enabled" : "disabled");
     }).fail(function () {
         $(cb).prop("checked", !enabled);
     });

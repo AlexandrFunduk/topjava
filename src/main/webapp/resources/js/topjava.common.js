@@ -23,7 +23,7 @@ function add() {
 
 function deleteRow(id) {
     $.ajax({
-        url: ctx.ajaxUrl + id,
+        url: ctx.ajaxUrl + "/" + id,
         type: "DELETE"
     }).done(function () {
         updateTable();
@@ -31,7 +31,9 @@ function deleteRow(id) {
     });
 }
 
-
+function updateTableByData(data) {
+    ctx.datatableApi.clear().rows.add(data).draw();
+}
 
 function save() {
     $.ajax({

@@ -5,7 +5,7 @@ var filterOn = false;
 $(function () {
     // https://stackoverflow.com/a/5064235/548473
     ctx = {
-        ajaxUrl: "meals/",
+        ajaxUrl: "ui/meals",
         datatableApi: $("#datatable").DataTable({
             "paging": false,
             "info": true,
@@ -41,7 +41,7 @@ $(function () {
 
 function filter() {
     $.ajax({
-        url: ctx.ajaxUrl + "filter",
+        url: ctx.ajaxUrl + "/filter",
         data: $('#filterForm').serialize(),
         type: "Get"
     }).done(updateTableByData);
@@ -50,8 +50,7 @@ function filter() {
 
 function clearFilter() {
     filterOn = false;
-    form = $('#filterForm');
-    form.find(":input").val("");
+    form = $('#filterForm').trigger('reset');
     updateTable()
 }
 
@@ -60,11 +59,8 @@ function updateTable() {
         filter()
     } else {
         $.get(ctx.ajaxUrl, function (data) {
-            ctx.datatableApi.clear().rows.add(data).draw();
+            updateTableByData(data);
         });
     }
 }
 
-function updateTableByData(data) {
-    ctx.datatableApi.clear().rows.add(data).draw();
-}
