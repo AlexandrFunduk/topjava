@@ -11,45 +11,53 @@
 <jsp:include page="fragments/bodyHeader.jsp"/>
 
 <section>
-    <div class="content">
-        <form id="filterForm">
-            <div class="form-row">
-                <div class="offset-1 col-2">
-                    <div class="form-group">
-                        <label for="startDate" class="col-form-label"><spring:message code="meal.startDate"/>:</label>
-                        <input class="form-control" type="date" id="startDate" name="startDate"
-                               value="${param.startDate}">
-                    </div>
-                </div>
-                <div class="col-2">
-                    <div class="form-group">
-                        <label for="endDate" class="col-form-label"><spring:message code="meal.endDate"/>:</label>
-                        <input class="form-control" type="date" id="endDate" name="endDate" value="${param.endDate}">
-                    </div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="offset-1 col-2">
-                    <div class="form-group">
-                        <label for="startTime" class="col-form-label"><spring:message code="meal.startTime"/>:</label>
-                        <input class="form-control" type="time" id="startTime" name="startTime"
-                               value="${param.startTime}">
-                    </div>
-                </div>
-                <div class="col-2">
-                    <div class="form-group">
-                        <label for="endTime" class="col-form-label"><spring:message code="meal.endTime"/>:</label>
-                        <input class="form-control" type="time" id="endTime" name="endTime" value="${param.endTime}">
-                    </div>
-                </div>
-            </div>
-            <button class="offset-1 btn btn-danger" type="button" onclick="clearFilter()"><span class="fa fa-remove"></span><spring:message code="common.cancel"/></button>
-            <button class="btn btn-primary" type="button" onclick="filter()"><span class="fa fa-filter"></span><spring:message code="meal.filter"/></button>
-        </form>
-    </div>
     <div class="jumbotron pt-4">
         <div class="container">
-            <h3><spring:message code="meal.title"/></h3>
+            <h3 class="text-center"><spring:message code="meal.title"/></h3>
+            <div class="content">
+                <form id="filterForm">
+                    <div class="form-row">
+                        <div class="col-3">
+                            <div class="form-group">
+                                <label for="startDate" class="col-form-label"><spring:message
+                                        code="meal.startDate"/>:</label>
+                                <input class="form-control" type="date" id="startDate" name="startDate"
+                                       value="${param.startDate}">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group">
+                                <label for="endDate" class="col-form-label"><spring:message
+                                        code="meal.endDate"/>:</label>
+                                <input class="form-control" type="date" id="endDate" name="endDate"
+                                       value="${param.endDate}">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group">
+                                <label for="startTime" class="col-form-label"><spring:message
+                                        code="meal.startTime"/>:</label>
+                                <input class="form-control" type="time" id="startTime" name="startTime"
+                                       value="${param.startTime}">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-group">
+                                <label for="endTime" class="col-form-label"><spring:message
+                                        code="meal.endTime"/>:</label>
+                                <input class="form-control" type="time" id="endTime" name="endTime"
+                                       value="${param.endTime}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pull-right">
+                        <button class="btn btn-danger" type="button" onclick="clearFilter()"><span
+                                class="fa fa-remove"></span><spring:message code="common.cancel"/></button>
+                        <button class="btn btn-primary" type="button" onclick="filter()"><span
+                                class="fa fa-filter"></span><spring:message code="meal.filter"/></button>
+                    </div>
+                </form>
+            </div>
             <button class="btn btn-primary" onclick="add()">
                 <span class="fa fa-plus"></span>
                 <spring:message code="common.add"/>
@@ -103,11 +111,13 @@
                     <div class="form-group">
                         <label for="description" class="col-form-label"><spring:message
                                 code="meal.description"/>:</label>
-                        <input type="text" class="form-control" id="description" name="description" required  placeholder="Описание">
+                        <input type="text" class="form-control" id="description" name="description" required
+                               placeholder="Описание">
                     </div>
                     <div class="form-group">
                         <label for="calories" class="col-form-label"><spring:message code="meal.calories"/>:</label>
-                        <input type="number" class="form-control" id="calories" name="calories" required placeholder="1000">
+                        <input type="number" class="form-control" id="calories" name="calories" required
+                               placeholder="1000">
                     </div>
                 </form>
             </div>

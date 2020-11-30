@@ -1,13 +1,17 @@
 package ru.javawebinar.topjava.web.user;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
+
+import java.lang.reflect.Field;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -44,5 +48,29 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNoContent());
 
         USER_MATCHER.assertMatch(userService.get(USER_ID), updated);
+    }
+
+    @Test
+    void enable() throws Exception {
+        perform(MockMvcRequestBuilders.post(REST_URL)
+                .param("enabled", "false")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED));
+        Assertions.assertFalse(userService.get(USER_ID).isEnabled());
+        perform(MockMvcRequestBuilders.post(REST_URL)
+                .param("enabled", "true")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED));
+        Assertions.assertTrue(userService.get(USER_ID).isEnabled());
+    }
+
+    @Test
+    void getWithMeals() throws Exception {
+        User userWithMeals = new User(user);
+        Field field = userWithMeals.getClass().getDeclaredField("meals");
+        field.setAccessible(true);
+        field.set(userWithMeals, MealTestData.meals);
+        perform(MockMvcRequestBuilders.get(REST_URL + "/with-meals"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(USER_MATCHER.contentJson(userWithMeals));
     }
 }

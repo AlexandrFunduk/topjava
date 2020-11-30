@@ -57,7 +57,7 @@ function enable(cb, id) {
         type: "POST",
         data: "enabled=" + enabled
     }).done(function () {
-        // updateTable();
+        updateTable();
         cb.closest("tr").attr("data-userEnabled", enabled);
         successNoty(enabled ? "enabled" : "disabled");
     }).fail(function () {
