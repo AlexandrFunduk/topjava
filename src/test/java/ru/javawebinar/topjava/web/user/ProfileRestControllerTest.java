@@ -52,11 +52,11 @@ class ProfileRestControllerTest extends AbstractControllerTest {
 
     @Test
     void enable() throws Exception {
-        perform(MockMvcRequestBuilders.post(REST_URL)
+        perform(MockMvcRequestBuilders.patch(REST_URL)
                 .param("enabled", "false")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED));
         Assertions.assertFalse(userService.get(USER_ID).isEnabled());
-        perform(MockMvcRequestBuilders.post(REST_URL)
+        perform(MockMvcRequestBuilders.patch(REST_URL)
                 .param("enabled", "true")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED));
         Assertions.assertTrue(userService.get(USER_ID).isEnabled());

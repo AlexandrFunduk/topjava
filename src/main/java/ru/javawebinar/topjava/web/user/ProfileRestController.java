@@ -39,7 +39,7 @@ public class ProfileRestController extends AbstractUserController {
         return super.getWithMeals(authUserId());
     }
 
-    @PostMapping()
+    @PatchMapping()
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void enable(@RequestParam boolean enabled) {
         super.enable(authUserId(), enabled);
