@@ -1,10 +1,13 @@
 package ru.javawebinar.topjava;
 
+import org.springframework.test.web.servlet.ResultMatcher;
+import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 
@@ -31,5 +34,13 @@ public class UserTestData {
         updated.setEnabled(false);
         updated.setRoles(Collections.singletonList(Role.ADMIN));
         return updated;
+    }
+
+    public static ResultMatcher userWithMealsMatcher(User userExpected, List<Meal> mealsExpected ) {
+        return result -> {
+            User user = TestUtil.readFromJsonMvcResult(result, User.class);
+            USER_MATCHER.assertMatch(user, userExpected);
+            MealTestData.MEAL_MATCHER.assertMatch(user.getMeals(), mealsExpected);
+        };
     }
 }
