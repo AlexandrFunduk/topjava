@@ -39,7 +39,7 @@ function save() {
     $.ajax({
         type: "POST",
         url: ctx.ajaxUrl,
-        data: $('#detailsForm').serialize()
+        data: form.serialize()
     }).done(function () {
         $("#editRow").modal("hide");
         updateTable();

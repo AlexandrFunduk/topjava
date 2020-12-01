@@ -50,7 +50,7 @@ function filter() {
 
 function clearFilter() {
     filterOn = false;
-    form = $('#filterForm').trigger('reset');
+    $('#filterForm').trigger('reset');
     updateTable()
 }
 

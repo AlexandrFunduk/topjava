@@ -106,7 +106,11 @@ class AdminRestControllerTest extends AbstractControllerTest {
         perform(MockMvcRequestBuilders.get(REST_URL + "100001/with-meals"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> MealTestData.MEAL_MATCHER.assertMatch(TestUtil.readFromJsonMvcResult(result, User.class).getMeals(), MealTestData.adminMeals));
+                .andExpect(result -> {
+                    User user = TestUtil.readFromJsonMvcResult(result, User.class);
+                    USER_MATCHER.assertMatch(user, admin);
+                    MealTestData.MEAL_MATCHER.assertMatch(user.getMeals(), MealTestData.adminMeals);
+                });
 
     }
 }

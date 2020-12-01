@@ -58,6 +58,7 @@
                     </div>
                 </form>
             </div>
+
             <button class="btn btn-primary" onclick="add()">
                 <span class="fa fa-plus"></span>
                 <spring:message code="common.add"/>

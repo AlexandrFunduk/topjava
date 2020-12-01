@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.MealTestData;
 import ru.javawebinar.topjava.TestUtil;
+import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
@@ -66,6 +67,10 @@ class ProfileRestControllerTest extends AbstractControllerTest {
         perform(MockMvcRequestBuilders.get(REST_URL + "/with-meals"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(result -> MealTestData.MEAL_MATCHER.assertMatch(TestUtil.readFromJsonMvcResult(result, User.class).getMeals(), MealTestData.meals));
+                .andExpect(result -> {
+                    User user = TestUtil.readFromJsonMvcResult(result, User.class);
+                    USER_MATCHER.assertMatch(user, UserTestData.user);
+                    MealTestData.MEAL_MATCHER.assertMatch(user.getMeals(), MealTestData.meals);
+                });
     }
 }
