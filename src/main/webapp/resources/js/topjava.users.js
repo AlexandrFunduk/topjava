@@ -54,10 +54,9 @@ function enable(cb, id) {
     var enabled = cb.is(":checked");
     $.ajax({
         url: ctx.ajaxUrl + "/" + id,
-        type: "PATCH",
+        type: "POST",
         data: "enabled=" + enabled
     }).done(function () {
-        updateTable();
         cb.closest("tr").attr("data-userEnabled", enabled);
         successNoty(enabled ? "enabled" : "disabled");
     }).fail(function () {
