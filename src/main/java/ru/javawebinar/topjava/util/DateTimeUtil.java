@@ -31,11 +31,18 @@ public class DateTimeUtil {
         return ldt == null ? "" : ldt.format(DATE_TIME_FORMATTER);
     }
 
-    public static @Nullable LocalDate parseLocalDate(@Nullable String str) {
+    public static @Nullable
+    LocalDate parseLocalDate(@Nullable String str) {
         return StringUtils.hasText(str) ? LocalDate.parse(str) : null;
     }
 
-    public static @Nullable LocalTime parseLocalTime(@Nullable String str) {
+    public static @Nullable
+    LocalTime parseLocalTime(@Nullable String str) {
         return StringUtils.hasText(str) ? LocalTime.parse(str) : null;
+    }
+
+    public static @Nullable
+    LocalDateTime parseLocalDateTime(@Nullable String str) {
+        return StringUtils.hasText(str) ? LocalDateTime.parse(str) : null;
     }
 }
