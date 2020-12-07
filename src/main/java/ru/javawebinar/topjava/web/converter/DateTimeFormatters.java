@@ -46,7 +46,7 @@ public class DateTimeFormatters {
 
         @Override
         public String print(LocalDateTime lt, Locale locale) {
-            return lt.format(DateTimeFormatter.ISO_LOCAL_TIME);
+            return lt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
     }
 }
