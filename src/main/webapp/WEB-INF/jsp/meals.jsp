@@ -113,11 +113,9 @@
 </div>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
-<c:set var="add"><spring:message code="meal.add"/></c:set>
-<c:set var="edit"><spring:message code="meal.edit"/></c:set>
+<c:set var="code" value="meal"/>
 <jsp:include page="fragments/i18n.jsp">
-    <jsp:param name="add" value="${add}"/>
-    <jsp:param name="edit" value="${edit}"/>
+    <jsp:param name="code" value="${code}"/>
 </jsp:include>
 
 </html>
