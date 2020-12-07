@@ -78,10 +78,10 @@
 </div>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
-<script type="text/javascript">
-    const i18n = [];
-    i18n["addTitle"] = '<spring:message code="user.add"/>';
-    i18n["editTitle"] = '<spring:message code="user.edit"/>';
-</script>
-<jsp:include page="fragments/i18n.jsp"/>
+<c:set var="add"><spring:message code="user.add"/></c:set>
+<c:set var="edit"><spring:message code="user.edit"/></c:set>
+<jsp:include page="fragments/i18n.jsp">
+    <jsp:param name="add" value="${add}"/>
+    <jsp:param name="edit" value="${edit}"/>
+</jsp:include>
 </html>

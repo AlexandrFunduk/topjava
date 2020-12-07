@@ -9,7 +9,7 @@
 <script type="text/javascript" src="resources/js/topjava.meals.js" defer></script>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 <script type="text/javascript">
-    var localeCode = ${pageContext.response.locale};
+    var localeCode = "${pageContext.response.locale}";
 </script>
 
 <div class="jumbotron pt-4">
@@ -113,10 +113,11 @@
 </div>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
-<script type="text/javascript">
-    const i18n = [];
-    i18n["addTitle"] = '<spring:message code="meal.add"/>';
-    i18n["editTitle"] = '<spring:message code="meal.edit"/>';
-</script>
-<jsp:include page="fragments/i18n.jsp"/>
+<c:set var="add"><spring:message code="meal.add"/></c:set>
+<c:set var="edit"><spring:message code="meal.edit"/></c:set>
+<jsp:include page="fragments/i18n.jsp">
+    <jsp:param name="add" value="${add}"/>
+    <jsp:param name="edit" value="${edit}"/>
+</jsp:include>
+
 </html>

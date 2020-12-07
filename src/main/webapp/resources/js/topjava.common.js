@@ -20,11 +20,17 @@ function updateRow(id) {
     form.find(":input").val("");
     $("#modalTitle").html(i18n["editTitle"]);
     $.get(ctx.ajaxUrl + id, function (data) {
-        $.each(data, function (key, value) {
-            form.find("input[name='" + key + "']").val(value);
-        });
-        $('#editRow').modal();
-    });
+            $.each(data, function (key, value) {
+                if (key === "dateTime") {
+                    form.find("input[name='" + key + "']").val(dataTimeFormat(value));
+                } else {
+                    form.find("input[name='" + key + "']").val(value);
+                }
+            });
+            $('#editRow').modal();
+        }
+    )
+    ;
 }
 
 function deleteRow(id) {
@@ -93,4 +99,8 @@ function renderDeleteBtn(data, type, row) {
     if (type === "display") {
         return "<a onclick='deleteRow(" + row.id + ");'><span class='fa fa-remove'></span></a>";
     }
+}
+
+function dataTimeFormat(date) {
+    return date.slice(0, -3).replace('T', " ");
 }
