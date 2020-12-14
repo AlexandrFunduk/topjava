@@ -23,7 +23,7 @@ public class MealUIController extends AbstractMealController {
     }
 
     @Override
-    @GetMapping( "/{id}")
+    @GetMapping("/{id}")
     public Meal get(@PathVariable int id) {
         return super.get(id);
     }

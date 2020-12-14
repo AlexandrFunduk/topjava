@@ -138,7 +138,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isConflict());
-
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -152,6 +151,5 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isConflict());
-
     }
 }

@@ -90,7 +90,6 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .andExpect(USER_WITH_MEALS_MATCHER.contentJson(user));
     }
 
-
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
