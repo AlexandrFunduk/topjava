@@ -21,6 +21,8 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
+import java.util.stream.Collectors;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
@@ -33,35 +35,51 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(NotFoundException.class)
     public ErrorInfo handleError(HttpServletRequest req, NotFoundException e) {
-        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND);
+        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND, null);
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
-        return logAndGetErrorInfo(req, e, true, DATA_ERROR);
+        Throwable rootCause = ValidationUtil.getRootCause(e);
+        if (rootCause.getMessage().contains("meals_unique")) {
+            return logAndGetErrorInfo(req, e, true, DATA_ERROR, "У вас уже есть еда с такой датой/временем");
+        }
+        if (rootCause.getMessage().contains("users_unique")) {
+            return logAndGetErrorInfo(req, e, true, DATA_ERROR, "User with this email already exists");
+        }
+        return logAndGetErrorInfo(req, e, true, DATA_ERROR, null);
     }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     @ExceptionHandler({IllegalRequestDataException.class, MethodArgumentTypeMismatchException.class, HttpMessageNotReadableException.class, BindException.class, MethodArgumentNotValidException.class})
     public ErrorInfo illegalRequestDataError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR);
+        if (e instanceof ConstraintViolationException && e.getMessage().contains("users_unique")) {
+            return logAndGetErrorInfo(req, e, true, DATA_ERROR, "Пользователь с таким email уже существует");
+        }
+        if (e instanceof BindException) {
+            String message = ((BindException) e).getBindingResult().getFieldErrors().stream()
+                    .map(fieldError -> fieldError.getField() + " - " + fieldError.getDefaultMessage())
+                    .collect(Collectors.joining("<br>"));
+            return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, message);
+        }
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, null);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorInfo handleError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, true, APP_ERROR);
+        return logAndGetErrorInfo(req, e, true, APP_ERROR, null);
     }
 
     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
-    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
+    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, String customMessage) {
         Throwable rootCause = ValidationUtil.getRootCause(e);
         if (logException) {
             log.error(errorType + " at request " + req.getRequestURL(), rootCause);
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
+        return customMessage==null ? new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString()) : new ErrorInfo(req.getRequestURL(), errorType, customMessage);
     }
 }
