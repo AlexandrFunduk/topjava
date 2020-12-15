@@ -10,7 +10,6 @@
 
     <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
         <property name="defaultLocale" value="ru"/>
-        <property name="cookieName" value="locale"/>
         <property name="cookieMaxAge" value="-1"/>
     </bean>
 
