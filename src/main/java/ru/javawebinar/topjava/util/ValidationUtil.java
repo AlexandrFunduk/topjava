@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValidationUtil {
+    public static final String USERS_UNIQUE = "users_unique";
+    public static final String MEALS_UNIQUE = "meals_unique";
 
     private static final Validator validator;
 
