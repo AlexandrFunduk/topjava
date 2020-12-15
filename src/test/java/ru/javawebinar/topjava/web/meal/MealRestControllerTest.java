@@ -142,7 +142,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
-
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -185,7 +184,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
-
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -201,7 +199,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
     }
-// https://stackoverflow.com/questions/17726282/jsonpath-noclassdeffounderror-or-an-alternative-to-jsonpath-in-java
+
+    // https://stackoverflow.com/questions/17726282/jsonpath-noclassdeffounderror-or-an-alternative-to-jsonpath-in-java
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
@@ -214,6 +213,5 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
-
     }
 }

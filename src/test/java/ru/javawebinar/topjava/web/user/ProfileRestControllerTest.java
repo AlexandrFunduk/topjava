@@ -105,6 +105,5 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
-
     }
 }

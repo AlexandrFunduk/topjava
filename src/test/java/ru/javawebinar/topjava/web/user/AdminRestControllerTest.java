@@ -163,7 +163,6 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
-
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -179,7 +178,6 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
-
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
