@@ -52,10 +52,10 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     @ExceptionHandler(BindException.class)
     public ErrorInfo validationError(HttpServletRequest req, BindException e) {
-            String[] message = e.getBindingResult().getFieldErrors().stream()
-                    .map(fieldError -> "[" +fieldError.getField() + "] " + fieldError.getDefaultMessage())
-                    .toArray(String[]::new);
-            return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, message);
+        String[] message = e.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> "[" + fieldError.getField() + "] " + fieldError.getDefaultMessage())
+                .toArray(String[]::new);
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, message);
     }
 
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)  // 422
@@ -67,7 +67,7 @@ public class ExceptionInfoHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ErrorInfo handleError(HttpServletRequest req, Exception e) {
-        return logAndGetErrorInfo(req, e, true, APP_ERROR );
+        return logAndGetErrorInfo(req, e, true, APP_ERROR);
     }
 
     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
@@ -78,6 +78,6 @@ public class ExceptionInfoHandler {
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, customMessage == null ? new String[] {rootCause.toString()} : customMessage);
+        return new ErrorInfo(req.getRequestURL(), errorType, customMessage == null ? new String[]{rootCause.toString()} : customMessage);
     }
 }

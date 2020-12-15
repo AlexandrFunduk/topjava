@@ -143,13 +143,65 @@ class MealRestControllerTest extends AbstractControllerTest {
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
+    void createNotValidDescription() throws Exception {
+        Meal meal = new Meal(null, meal1.getDateTime(), "", 250);
+        perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(meal))
+                .with(userHttpBasic(user)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void createNotValidCalories() throws Exception {
+        Meal meal = new Meal(null, meal1.getDateTime(), "Description", 2);
+        perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(meal))
+                .with(userHttpBasic(user)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
     void updateDuplicateDateTime() throws Exception {
-        Meal meal = new Meal(meal1.getId(), meal2.getDateTime(), "duplicate", 250);
-        perform(MockMvcRequestBuilders.put(REST_URL + "/" + meal1.getId())
+        Meal meal = new Meal(MEAL1_ID, meal2.getDateTime(), "duplicate", 250);
+        perform(MockMvcRequestBuilders.put(REST_URL + "/" + MEAL1_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(meal))
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isConflict());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidDescription() throws Exception {
+        Meal meal = new Meal(MEAL1_ID, meal1.getDateTime(), "d", 250);
+        perform(MockMvcRequestBuilders.put(REST_URL + "/" + MEAL1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(meal))
+                .with(userHttpBasic(user)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidCalories() throws Exception {
+        Meal meal = new Meal(MEAL1_ID, meal1.getDateTime(), "Description", 5250);
+        perform(MockMvcRequestBuilders.put(REST_URL + "/" + MEAL1_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(meal))
+                .with(userHttpBasic(user)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
     }
 }

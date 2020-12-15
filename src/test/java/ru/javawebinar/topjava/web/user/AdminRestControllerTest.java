@@ -174,4 +174,85 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .andDo(print())
                 .andExpect(status().isConflict());
     }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void createNotValidName() throws Exception {
+        User duplicateUser = new User(null, "", admin.getEmail(), "123456", 2000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void createNotValidPassword() throws Exception {
+        User duplicateUser = new User(null, "", admin.getEmail(), "1", 2000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void createNotValidCaloriesPerDay() throws Exception {
+        User duplicateUser = new User(null, "", admin.getEmail(), "123456", 20000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidName() throws Exception {
+        User duplicateUser = new User(admin);
+        duplicateUser.setName("");
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidPassword() throws Exception {
+        User duplicateUser = new User(admin);
+        duplicateUser.setPassword("2");
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidCaloriesPerDay() throws Exception {
+        User duplicateUser = new User(admin);
+        duplicateUser.setCaloriesPerDay(1);
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity());
+    }
 }
