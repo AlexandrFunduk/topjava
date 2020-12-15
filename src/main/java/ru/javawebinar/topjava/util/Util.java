@@ -17,8 +17,13 @@ public class Util {
     }
 
     public static String getMessage(MessageSource messageSource, HttpServletRequest req, String codeMessage) {
+        Cookie[] cookies = req.getCookies();
+        if (cookies == null) {
+            return "";
+        }
         String cookieName = "org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE";
-        String languageTag = Arrays.stream(req.getCookies())
+
+        String languageTag = Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equalsIgnoreCase(cookieName))
                 .findFirst().map(Cookie::getValue)
                 .orElse("ru");
