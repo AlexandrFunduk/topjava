@@ -34,9 +34,9 @@
                 ${pageContext.response.locale}</a>
             <div class="dropdown-menu">
                 <a class="dropdown-item"
-                   href="<%= new UrlPathHelper().getOriginatingRequestUri(request) %>?lang=en">English</a>
+                   href="${requestScope['javax.servlet.forward.request_uri']}?lang=en">English</a>
                 <a class="dropdown-item"
-                   href="<%= new UrlPathHelper().getOriginatingRequestUri(request) %>?lang=ru">Русский</a>
+                   href="${requestScope['javax.servlet.forward.request_uri']}?lang=ru">Русский</a>
             </div>
         </div>
     </div>
