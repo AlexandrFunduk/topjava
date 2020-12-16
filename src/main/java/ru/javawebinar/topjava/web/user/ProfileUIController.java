@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.support.SessionStatus;
 import ru.javawebinar.topjava.to.UserTo;
-import ru.javawebinar.topjava.util.Util;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +39,7 @@ public class ProfileUIController extends AbstractUserController {
                 status.setComplete();
                 return "redirect:/meals";
             } catch (DataIntegrityViolationException e) {
-                result.rejectValue("email", "error.user", Util.getMessage(messageSource, req, "user.duplicateEmail"));
+                result.rejectValue("email", "user.duplicateEmail");
                 return "profile";
             }
         }
@@ -65,10 +64,10 @@ public class ProfileUIController extends AbstractUserController {
                 status.setComplete();
                 return "redirect:/login?message=app.registered&username=" + userTo.getEmail();
             } catch (DataIntegrityViolationException e) {
-                result.rejectValue("email", "error.user", Util.getMessage(messageSource,req, "user.duplicateEmail"));
+                result.rejectValue("email", "user.duplicateEmail");
+                model.addAttribute("register", true);
                 return "profile";
             }
-
         }
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import ru.javawebinar.topjava.AuthorizedUser;
-import ru.javawebinar.topjava.util.ValidationUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -22,13 +21,9 @@ public class GlobalExceptionHandler {
     public ModelAndView defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
         log.error("Exception at request " + req.getRequestURL(), e);
         Throwable rootCause = getRootCause(e);
-        String message = rootCause.toString();
-        if (rootCause.getMessage().contains(ValidationUtil.USERS_UNIQUE)) {
-            message = "User with this email already exists";
-        }
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         ModelAndView mav = new ModelAndView("exception",
-                Map.of("exception", rootCause, "message", message, "status", httpStatus));
+                Map.of("exception", rootCause, "message", rootCause.toString(), "status", httpStatus));
         mav.setStatus(httpStatus);
 
         // Interceptor is not invoked, put userTo
