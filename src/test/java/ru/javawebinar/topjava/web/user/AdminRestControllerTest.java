@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.UserTestData;
@@ -162,7 +161,8 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("user.duplicateEmail"));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -177,93 +177,94 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("user.duplicateEmail"));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void createNotValidName() throws Exception {
-        User duplicateUser = new User(null, "", admin.getEmail(), "123456", 2000, Role.USER);
+        User notValidUser = new User(null, "", admin.getEmail(), "123456", 2000, Role.USER);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void createNotValidPassword() throws Exception {
-        User duplicateUser = new User(null, "", admin.getEmail(), "1", 2000, Role.USER);
+        User notValidUser = new User(null, "", admin.getEmail(), "1", 2000, Role.USER);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void createNotValidCaloriesPerDay() throws Exception {
-        User duplicateUser = new User(null, "", admin.getEmail(), "123456", 20000, Role.USER);
+        User notValidUser = new User(null, "", admin.getEmail(), "123456", 20000, Role.USER);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void updateNotValidName() throws Exception {
-        User duplicateUser = new User(admin);
-        duplicateUser.setName("");
+        User notValidUser = new User(admin);
+        notValidUser.setName("");
         ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void updateNotValidPassword() throws Exception {
-        User duplicateUser = new User(admin);
-        duplicateUser.setPassword("2");
+        User notValidUser = new User(admin);
+        notValidUser.setPassword("2");
         ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
     @Test
     @Transactional(propagation = Propagation.NEVER)
     void updateNotValidCaloriesPerDay() throws Exception {
-        User duplicateUser = new User(admin);
-        duplicateUser.setCaloriesPerDay(1);
+        User notValidUser = new User(admin);
+        notValidUser.setCaloriesPerDay(1);
         ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL + "/" + admin.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(admin))
-                .content(UserTestData.jsonWithPassword(duplicateUser, duplicateUser.getPassword())))
+                .content(UserTestData.jsonWithPassword(notValidUser, notValidUser.getPassword())))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 }

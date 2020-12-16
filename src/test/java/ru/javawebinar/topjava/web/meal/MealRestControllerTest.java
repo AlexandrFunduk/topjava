@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.Meal;
@@ -141,7 +140,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("meal.duplicateDate"));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -155,7 +155,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -169,7 +169,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -183,7 +183,8 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("meal.duplicateDate"));
     }
 
     // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
@@ -197,7 +198,7 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 
     // https://stackoverflow.com/questions/17726282/jsonpath-noclassdeffounderror-or-an-alternative-to-jsonpath-in-java
@@ -212,6 +213,6 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(user)))
                 .andDo(print())
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(VALIDATION_ERROR.toString()));
+                .andExpect(type(VALIDATION_ERROR));
     }
 }

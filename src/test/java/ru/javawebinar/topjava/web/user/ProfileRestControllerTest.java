@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.to.UserTo;
@@ -22,6 +22,7 @@ import static ru.javawebinar.topjava.TestUtil.readFromJson;
 import static ru.javawebinar.topjava.TestUtil.userHttpBasic;
 import static ru.javawebinar.topjava.UserTestData.*;
 import static ru.javawebinar.topjava.util.exception.ErrorType.DATA_ERROR;
+import static ru.javawebinar.topjava.util.exception.ErrorType.VALIDATION_ERROR;
 import static ru.javawebinar.topjava.web.user.ProfileRestController.REST_URL;
 
 class ProfileRestControllerTest extends AbstractControllerTest {
@@ -104,6 +105,106 @@ class ProfileRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(duplicateUser)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.type").value(DATA_ERROR.toString()));
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("user.duplicateEmail"));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidPassword() throws Exception {
+        User notValidUser = new User(admin);
+        notValidUser.setPassword("2");
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidCaloriesPerDay() throws Exception {
+        User notValidUser = new User(admin);
+        notValidUser.setCaloriesPerDay(1);
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void updateNotValidName() throws Exception {
+        User notValidUser = new User(admin);
+        notValidUser.setName("");
+        ResultActions action = perform(MockMvcRequestBuilders.put(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(userHttpBasic(admin))
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void registerWithDuplicateEmail() throws Exception {
+        UserTo newTo = new UserTo(null, "newName", admin.getEmail(), "newPassword", 1500);
+        User newUser = UserUtil.createNewFromTo(newTo);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL + "/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(newTo)))
+                .andDo(print())
+                .andExpect(status().isConflict())
+                .andExpect(type(DATA_ERROR))
+                .andExpect(message("user.duplicateEmail"));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void registerNotValidName() throws Exception {
+        User notValidUser = new User(null, "", admin.getEmail(), "123456", 2000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL + "/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void registerNotValidPassword() throws Exception {
+        User notValidUser = new User(null, "", admin.getEmail(), "1", 2000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL + "/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
+    }
+
+    // https://stackoverflow.com/questions/37406714/cannot-test-expected-exception-when-using-transactional-with-commit
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    void registerNotValidCaloriesPerDay() throws Exception {
+        User notValidUser = new User(null, "", admin.getEmail(), "123456", 20000, Role.USER);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL + "/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(notValidUser)))
+                .andDo(print())
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(type(VALIDATION_ERROR));
     }
 }
