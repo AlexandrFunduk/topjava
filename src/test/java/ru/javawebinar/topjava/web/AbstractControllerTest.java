@@ -2,7 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.junit.jupiter.api.Assumptions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
@@ -38,7 +38,7 @@ public abstract class AbstractControllerTest {
     private static final CharacterEncodingFilter CHARACTER_ENCODING_FILTER = new CharacterEncodingFilter();
 
     @Autowired
-    private MessageSource messageSource;
+    private MessageSourceAccessor messageSourceAccessor;
 
     @Autowired
     public Environment env;
@@ -75,6 +75,6 @@ public abstract class AbstractControllerTest {
     }
 
     public ResultMatcher message(String codeMessage) {
-        return jsonPath("$.details").value(messageSource.getMessage(codeMessage, null, new Locale("ru")));
+        return jsonPath("$.details").value(messageSourceAccessor.getMessage(codeMessage, new Locale("ru")));
     }
 }

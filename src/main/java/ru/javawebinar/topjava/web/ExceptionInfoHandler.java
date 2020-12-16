@@ -33,7 +33,7 @@ public class ExceptionInfoHandler {
 
     private static Logger log = LoggerFactory.getLogger(ExceptionInfoHandler.class);
 
-    @Autowired
+    @Autowired(required = false)
     private MessageSourceAccessor messageSource;
 
     //  http://stackoverflow.com/a/22358422/548473
