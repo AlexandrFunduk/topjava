@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 public class MealsUtil {
 
+    public static final String MEAL_DUPLICATE_DATE = "meal.duplicateDate";
+
     private MealsUtil() {
     }
 

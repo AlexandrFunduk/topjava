@@ -70,7 +70,6 @@ public abstract class AbstractControllerTest {
         return mockMvc.perform(builder);
     }
 
-
     public ResultMatcher type(ErrorType type) {
         return jsonPath("$.type").value(type.name());
     }

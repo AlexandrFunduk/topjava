@@ -81,4 +81,9 @@
             <property name="paramName" value="lang"/>
         </bean>
     </mvc:interceptors>
+
+<!--https://stackoverflow.com/questions/24336290/spring-message-source-getmessage-in-bean-xml-->
+    <bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor">
+        <constructor-arg ref="messageSource" />
+    </bean>
 </beans>

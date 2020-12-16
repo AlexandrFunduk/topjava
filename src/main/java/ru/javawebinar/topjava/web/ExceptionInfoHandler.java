@@ -3,8 +3,7 @@ package ru.javawebinar.topjava.web;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,6 +22,8 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static ru.javawebinar.topjava.util.MealsUtil.MEAL_DUPLICATE_DATE;
+import static ru.javawebinar.topjava.util.UserUtil.USER_DUPLICATE_EMAIL;
 import static ru.javawebinar.topjava.util.ValidationUtil.*;
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
@@ -33,13 +34,13 @@ public class ExceptionInfoHandler {
     private static Logger log = LoggerFactory.getLogger(ExceptionInfoHandler.class);
 
     @Autowired
-    private MessageSource messageSource;
+    private MessageSourceAccessor messageSource;
 
     //  http://stackoverflow.com/a/22358422/548473
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ExceptionHandler(NotFoundException.class)
     public ErrorInfo handleError(HttpServletRequest req, NotFoundException e) {
-        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND, messageSource.getMessage("common.notFound", null, LocaleContextHolder.getLocale()));
+        return logAndGetErrorInfo(req, e, false, DATA_NOT_FOUND/*, messageSource.getMessage("common.notFound")*/);
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)  // 409
@@ -47,10 +48,10 @@ public class ExceptionInfoHandler {
     public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
         Throwable rootCause = getRootCause(e);
         if (rootCause.getMessage().contains(MEALS_UNIQUE)) {
-            return logAndGetErrorInfo(req, e, true, DATA_ERROR, messageSource.getMessage("meal.duplicateDate", null, LocaleContextHolder.getLocale()));
+            return logAndGetErrorInfo(req, e, true, DATA_ERROR, messageSource.getMessage(MEAL_DUPLICATE_DATE));
         }
         if (rootCause.getMessage().contains(USERS_UNIQUE)) {
-            return logAndGetErrorInfo(req, e, true, DATA_ERROR, messageSource.getMessage("user.duplicateEmail", null, LocaleContextHolder.getLocale()));
+            return logAndGetErrorInfo(req, e, true, DATA_ERROR, messageSource.getMessage(USER_DUPLICATE_EMAIL));
         }
         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
     }
@@ -84,6 +85,6 @@ public class ExceptionInfoHandler {
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, customMessage == null ? new String[]{rootCause.toString()} : customMessage);
+        return new ErrorInfo(req.getRequestURL(), errorType, customMessage.length == 0 ? new String[]{rootCause.getMessage()} : customMessage);
     }
 }
